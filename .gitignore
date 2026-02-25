@@ -1,0 +1,45 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.ncb
+*.aps
+*.vspscc
+*.vssscc
+*.bak
+*.scc
+*.pdb
+*.obj
+*.o
+*.ipch
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+bin/
+obj/
+*.exe
+*.dll
+*.ilk
+*.lib
+*.exp
+*.log
+*.tlog
+*.trx
+
+# Resharper
+*.resharper
+
+# NuGet
+packages/
+*.nupkg
+
+# Other
+_ReSharper.*/
+TestResults/
+*.VC.db
+*.sdf
+*.cache
+*.opendb
+*.vshost.exe
+*.vshost.exe.config

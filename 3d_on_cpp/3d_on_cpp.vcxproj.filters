@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\logic_controller">
+      <UniqueIdentifier>{d7966691-b19c-4a0c-9c74-15b339f61953}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui_controller">
+      <UniqueIdentifier>{841bfdd1-fbd6-49e5-b05b-6c904176d033}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="logic_controller.cpp">
+      <Filter>Source Files\logic_controller</Filter>
+    </ClCompile>
+    <ClCompile Include="ui_controller.cpp">
+      <Filter>Source Files\ui_controller</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="logic_controller.h">
+      <Filter>Source Files\logic_controller</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_controller.h">
+      <Filter>Source Files\ui_controller</Filter>
+    </ClInclude>
+    <ClInclude Include="basic_functions.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
