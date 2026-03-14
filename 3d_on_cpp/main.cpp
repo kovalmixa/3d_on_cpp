@@ -35,7 +35,7 @@ void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& even
                 if (mouseEvent->button == sf::Mouse::Button::Left)
                 {
                     sf::Vector2f mouse_position = window->mapPixelToCoords(mouseEvent->position);
-                    logic_controller->execute_action(ui_controller->current_action, mouse_position);
+                    logic_controller->execute_action(ui_controller->current_button_action, mouse_position);
                     logic_controller->begin_drag(mouse_position);
                 }
                 else if (const auto* mouseEvent = event.getIf<sf::Event::MouseButtonReleased>())
@@ -76,7 +76,7 @@ void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& even
     {
         sf::Vector2i pixelPos = sf::Mouse::getPosition(*window);
         sf::Vector2f worldPos = window->mapPixelToCoords(pixelPos);
-        logic_controller->update_drag(ui_controller->current_action, worldPos);
+        logic_controller->update_drag(ui_controller->current_button_action, worldPos);
     }
 
     event_queue.clear();
@@ -84,13 +84,12 @@ void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& even
 
 void rendering_pipeline(sf::RenderWindow* window, ImGuiIO* io) {
     ImGui::SFML::Update(*window, delta_clock.restart());
-
+    auto ui = UIController::get_instance();
     if (ImGui::BeginMainMenuBar())
     {
-        auto ui = UIController::get_instance();
         ImGui::BeginGroup();
 #pragma region color_pallete_picker_code
-        sf::Color current_color = ui->get_current_color();
+        sf::Color current_color = ui->current_color;
         float color_array[4];
         color_array[0] = (float)current_color.r / 255.0f;
         color_array[1] = (float)current_color.g / 255.0f;
@@ -103,21 +102,23 @@ void rendering_pipeline(sf::RenderWindow* window, ImGuiIO* io) {
             ImGuiColorEditFlags_NoLabel)
             )
         {
-            ui->set_current_color(sf::Color(
+            ui->current_color = sf::Color(
                 static_cast<uint8_t>(color_array[0] * 255),
                 static_cast<uint8_t>(color_array[1] * 255),
                 static_cast<uint8_t>(color_array[2] * 255),
                 static_cast<uint8_t>(color_array[3] * 255)
-            ));
+            );
         }
 #pragma endregion
+        ImGui::Text("Color picker:");
         ui->draw_button("Paint", ButtonAction::Paint, ImVec2(50, 20));
+        ui->draw_button("Pipette", ButtonAction::Pipette);
         ImGui::EndGroup();
         ImGui::EndMainMenuBar();
     }
 
-    //window->clear(sf::Color(30, 30, 30));
-    window->clear(rainbow_function(x));
+    window->clear(ui->background_color);
+    //window->clear(rainbow_function(x));
 
     LogicController::get_instance()->render_shapes(*window);
     ImGui::SFML::Render(*window);
@@ -144,7 +145,7 @@ void window_render_thread(sf::RenderWindow* window, ImGuiIO* io)
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "SFML MT");
+    sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "SFML 3d");
     window.setActive(false);
     window.setFramerateLimit(60);
 
@@ -166,3 +167,41 @@ int main()
     if (render.joinable()) render.join();
     return 0;
 }
+
+//int main() {
+//    // 1. Initialize SFML Window with OpenGL
+//    sf::Window window(sf::VideoMode({ 800, 600 }), "SFML 3D Cube", sf::Style::Default, sf::ContextSettings(32));
+//    window.setVerticalSyncEnabled(true);
+//    window.setActive(true);
+//
+//    // 2. Setup OpenGL Perspective
+//    glMatrixMode(GL_PROJECTION);
+//    glLoadIdentity();
+//    gluPerspective(45.f, 800.f / 600.f, 1.f, 500.f);
+//    glEnable(GL_DEPTH_TEST);
+//
+//    sf::Clock clock;
+//    while (window.isOpen()) {
+//        sf::Event event;
+//        while (window.pollEvent(event)) {
+//            if (event.type == sf::Event::Closed) window.close();
+//        }
+//
+//        // 3. Render 3D Scene
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        glMatrixMode(GL_MODELVIEW);
+//        glLoadIdentity();
+//        glTranslatef(0.f, 0.f, -200.f);
+//        glRotatef(clock.getElapsedTime().asSeconds() * 50.f, 1.f, 1.f, 0.f);
+//
+//        // Draw cube (simplified faces)
+//        glBegin(GL_QUADS);
+//        glColor3f(1.f, 0.f, 0.f); glVertex3f(-50, -50, -50); glVertex3f(-50, 50, -50);
+//        glVertex3f(50, 50, -50); glVertex3f(50, -50, -50);
+//        // ... (Add other 5 faces here) ...
+//        glEnd();
+//
+//        window.display();
+//    }
+//    return 0;
+//}

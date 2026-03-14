@@ -124,16 +124,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="complex_shape.cpp" />
     <ClCompile Include="logic_controller.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="selection_controller.cpp" />
+    <ClCompile Include="transform_data.cpp" />
     <ClCompile Include="ui_controller.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basic_functions.h" />
+    <ClInclude Include="basic_funtions.h" />
+    <ClInclude Include="complex_shape.h" />
+    <ClInclude Include="save_data_contrainer.h" />
     <ClInclude Include="logic_controller.h" />
+    <ClInclude Include="selection_controller.h" />
+    <ClInclude Include="transform_data.h" />
     <ClInclude Include="ui_controller.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\nlohmann.json.3.12.0\build\native\nlohmann.json.targets" Condition="Exists('..\packages\nlohmann.json.3.12.0\build\native\nlohmann.json.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\nlohmann.json.3.12.0\build\native\nlohmann.json.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\nlohmann.json.3.12.0\build\native\nlohmann.json.targets'))" />
+  </Target>
 </Project>
