@@ -2,15 +2,15 @@
 #include <deque>
 #include <functional>
 #include <map>
-#include "complex_shape.h"
+#include "shape.h"
 #include "ui_controller.h"
 
 class LogicController
 {
 private:
 	static LogicController* instance_;
-
-	std::deque<ComplexShape*> shapes_;
+	const float MODELS_UPSCALE = 1.5;
+	std::deque<Shape*> shapes_;
 	std::map<ButtonAction, std::function<void(sf::Vector2f)>> handlers_;
 
 	bool is_dragging_ = false;
@@ -26,8 +26,8 @@ private:
 public:
 	static LogicController* get_instance();
 
-	void load_data();
-	void save_data();
+	void load_data(std::string file_path);
+	void save_data(std::string file_path);
 
 	void execute_action(ButtonAction action, sf::Vector2f mouse_position);
 	void keyboard_action_process(const sf::Event event, sf::Vector2f mouse_position);
@@ -36,7 +36,8 @@ public:
 
 	void update_drag(ButtonAction action, sf::Vector2f mouse_position);
 	void remove_actions();
-	void add_shape(ComplexShape* shape);
-	void delete_shape(ComplexShape*& shape);
+	void add_shape(Shape* shape);
+	void delete_shape(Shape*& shape);
+	void delete_all_shapes();
 	void render_shapes(sf::RenderWindow& window);
 };

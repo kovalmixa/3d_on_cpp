@@ -15,14 +15,17 @@
     <Filter Include="Source Files\ui_controller">
       <UniqueIdentifier>{841bfdd1-fbd6-49e5-b05b-6c904176d033}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\complex_shape">
-      <UniqueIdentifier>{970ea885-0fb4-497b-85e5-559aca983c3d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\logic_controller\selection_controller">
       <UniqueIdentifier>{75027902-0c76-4ad5-a834-e373dd85a7d1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\complex_shape\transform_data">
-      <UniqueIdentifier>{fce7c9ea-da90-43fc-b520-7993446871f3}</UniqueIdentifier>
+    <Filter Include="Source Files\shape">
+      <UniqueIdentifier>{970ea885-0fb4-497b-85e5-559aca983c3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shape\bounding_box">
+      <UniqueIdentifier>{70f96f12-c033-499b-a21d-6f98ffec21a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ImGuiFileDialog">
+      <UniqueIdentifier>{b8e3c2cf-8a32-4967-9295-fad75babbd22}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -35,14 +38,17 @@
     <ClCompile Include="ui_controller.cpp">
       <Filter>Source Files\ui_controller</Filter>
     </ClCompile>
-    <ClCompile Include="complex_shape.cpp">
-      <Filter>Source Files\complex_shape</Filter>
+    <ClCompile Include="shape.cpp">
+      <Filter>Source Files\shape</Filter>
     </ClCompile>
     <ClCompile Include="selection_controller.cpp">
       <Filter>Source Files\logic_controller\selection_controller</Filter>
     </ClCompile>
-    <ClCompile Include="transform_data.cpp">
-      <Filter>Source Files\complex_shape\transform_data</Filter>
+    <ClCompile Include="aabb.cpp">
+      <Filter>Source Files\shape\bounding_box</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiFileDialog\ImGuiFileDialog.cpp">
+      <Filter>Source Files\ImGuiFileDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -53,17 +59,32 @@
       <Filter>Source Files\ui_controller</Filter>
     </ClInclude>
     <ClInclude Include="basic_functions.h" />
-    <ClInclude Include="complex_shape.h">
-      <Filter>Source Files\complex_shape</Filter>
+    <ClInclude Include="shape.h">
+      <Filter>Source Files\shape</Filter>
     </ClInclude>
     <ClInclude Include="selection_controller.h">
       <Filter>Source Files\logic_controller\selection_controller</Filter>
     </ClInclude>
-    <ClInclude Include="save_data_contrainer.h">
-      <Filter>Source Files\complex_shape</Filter>
+    <ClInclude Include="aabb.h">
+      <Filter>Source Files\shape\bounding_box</Filter>
     </ClInclude>
-    <ClInclude Include="transform_data.h">
-      <Filter>Source Files\complex_shape\transform_data</Filter>
+    <ClInclude Include="ImGuiFileDialog\ImGuiFileDialog.h">
+      <Filter>Source Files\ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiFileDialog\dirent\dirent.h">
+      <Filter>Source Files\ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiFileDialog\ImGuiFileDialogConfig.h">
+      <Filter>Source Files\ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="geometry.h">
+      <Filter>Source Files\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="transform.h">
+      <Filter>Source Files\shape</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.h">
+      <Filter>Source Files\shape</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

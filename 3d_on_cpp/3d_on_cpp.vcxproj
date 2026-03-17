@@ -100,9 +100,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp23</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,20 +124,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="complex_shape.cpp" />
+    <ClCompile Include="aabb.cpp" />
+    <ClCompile Include="ImGuiFileDialog\ImGuiFileDialog.cpp" />
+    <ClCompile Include="shape.cpp" />
     <ClCompile Include="logic_controller.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="selection_controller.cpp" />
-    <ClCompile Include="transform_data.cpp" />
     <ClCompile Include="ui_controller.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="aabb.h" />
     <ClInclude Include="basic_functions.h" />
-    <ClInclude Include="complex_shape.h" />
-    <ClInclude Include="save_data_contrainer.h" />
+    <ClInclude Include="geometry.h" />
+    <ClInclude Include="ImGuiFileDialog\dirent\dirent.h" />
+    <ClInclude Include="ImGuiFileDialog\ImGuiFileDialog.h" />
+    <ClInclude Include="ImGuiFileDialog\ImGuiFileDialogConfig.h" />
+    <ClInclude Include="shader.h" />
+    <ClInclude Include="shape.h" />
     <ClInclude Include="logic_controller.h" />
     <ClInclude Include="selection_controller.h" />
-    <ClInclude Include="transform_data.h" />
+    <ClInclude Include="transform.h" />
     <ClInclude Include="ui_controller.h" />
   </ItemGroup>
   <ItemGroup>

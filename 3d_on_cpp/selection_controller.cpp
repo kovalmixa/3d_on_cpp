@@ -25,7 +25,7 @@ void SelectionController::update_transform_points()
 {
 }
 
-void SelectionController::remove_shape_from_selection(ComplexShape* figure)
+void SelectionController::remove_shape_from_selection(Shape* figure)
 {
 	if (!figure) return;
 	selected_shapes_.remove(figure);
@@ -37,15 +37,10 @@ void SelectionController::remove_shape_from_selection(ComplexShape* figure)
 	else clear_selection();
 }
 
-bool SelectionController::is_point_near_transform_point(sf::Vector2f point, sf::Shape* transform_point)
-{
-	return euclidean_distance(point, transform_point->getPosition()) <= TRANSFORM_POINTS_DRAG_RADIUS_OFFSET;
-}
-
 void SelectionController::drag_rotation(sf::Vector2f mouse_position)
 {
-	auto center = selection_transform_data.position;
-	auto vector_to_mouse = get_vector_from_points(center, mouse_position);
+	//auto center = selection_transform_data.position;
+	//auto vector_to_mouse = get_vector_from_points(center, mouse_position);
 	//auto vector_to_rotation_point = get_vector_from_points(center, transform_points_[TransformMode::Angle]->getPosition());
 	//float angle = angle_between_vectors_2d(vector_to_rotation_point, vector_to_mouse);
 	//selection_transform_data.rotation += sf::radians(angle);
@@ -54,71 +49,59 @@ void SelectionController::drag_rotation(sf::Vector2f mouse_position)
 
 void SelectionController::drag_movement(sf::Vector2f mouse_position)
 {
-	auto delta = get_vector_from_points(selection_transform_data.position, mouse_position);
-	selection_transform_data.position += delta;
+	//auto delta = get_vector_from_points(selection_transform_data.position, mouse_position);
+	//selection_transform_data.position += delta;
 	update_transform_to_selected_shapes();
 }
 
 void SelectionController::update_transform_to_selected_shapes()
 {
-	auto lastCenter = last_transform_data.position;
-	auto newCenter = selection_transform_data.position;
-	auto lastSize = last_transform_data.size;
-	auto newSize = selection_transform_data.size;
+	//auto lastCenter = last_transform_data.position;
+	//auto newCenter = selection_transform_data.position;
+	//auto lastSize = last_transform_data.size;
+	//auto newSize = selection_transform_data.size;
 
-	auto deltaRotation = selection_transform_data.rotation - last_transform_data.rotation;
-	if (selected_shapes_.size() == 1) {
-		auto* shape = selected_shapes_.front();
-		TransformData newTransform;
-		newTransform.position = selection_transform_data.position;
-		newTransform.size = selection_transform_data.size;
-		newTransform.rotation = selection_transform_data.rotation;
-		shape->set_transform(newTransform);
-		update_transform_points();
-		return;
-	}
+	//auto deltaRotation = selection_transform_data.rotation - last_transform_data.rotation;
+	//if (selected_shapes_.size() == 1) {
+	//	auto* shape = selected_shapes_.front();
+	//	TransformData newTransform;
+	//	newTransform.position = selection_transform_data.position;
+	//	newTransform.size = selection_transform_data.size;
+	//	newTransform.rotation = selection_transform_data.rotation;
+	//	shape->set_transform(newTransform);
+	//	update_transform_points();
+	//	return;
+	//}
 
-	float scaleX = lastSize.x != 0.f ? (newSize.x / lastSize.x) : 1.f;
-	float scaleY = lastSize.y != 0.f ? (newSize.y / lastSize.y) : 1.f;
+	//float scaleX = lastSize.x != 0.f ? (newSize.x / lastSize.x) : 1.f;
+	//float scaleY = lastSize.y != 0.f ? (newSize.y / lastSize.y) : 1.f;
 	for (auto* shape : selected_shapes_)
 	{
-		auto shape_transform = shape->get_transform();
-		sf::Vector2f offset = shape_transform.position - lastCenter;
-		sf::Vector2f scaledOffset{ offset.x * scaleX, offset.y * scaleY };
-		sf::Vector2f scaledSize{ shape_transform.size.x * scaleX, shape_transform.size.y * scaleY };
+		//auto shape_transform = shape->get_transform();
+		//sf::Vector2f offset = shape_transform.position - lastCenter;
+		//sf::Vector2f scaledOffset{ offset.x * scaleX, offset.y * scaleY };
+		//sf::Vector2f scaledSize{ shape_transform.size.x * scaleX, shape_transform.size.y * scaleY };
 
-		shape_transform.position = newCenter + scaledOffset;
-		shape_transform.size = scaledSize;
-		shape_transform.rotation += deltaRotation;
+		//shape_transform.position = newCenter + scaledOffset;
+		//shape_transform.size = scaledSize;
+		//shape_transform.rotation += deltaRotation;
 
-		shape->set_transform(shape_transform);
+		//shape->set_transform(shape_transform);
 	}
 	update_transform_points();
 }
 
-TransformData SelectionController::get_all_shapes_bounds_transform(std::list<ComplexShape*> figures)
+AABB SelectionController::get_all_shapes_bounds_transform(std::list<Shape*> figures)
 {
-	if (figures.empty()) return TransformData::Default;
-	if (figures.size() == 1) return figures.front()->get_transform();
-
-	float min_x = std::numeric_limits<float>::max();
-	float min_y = std::numeric_limits<float>::max();
-	float max_x = std::numeric_limits<float>::lowest();
-	float max_y = std::numeric_limits<float>::lowest();
-
-	for (auto* shape : figures)
+	if (figures.empty()) return AABB::Default;
+	AABB bounding_box;
+	bounding_box.min = figures.front()->get_box().min;
+	bounding_box.max = figures.front()->get_box().max;
+	for (const auto& f : figures)
 	{
-		auto bounds = shape->get_global_bounds();
-		min_x = std::min(min_x, bounds.position.x);
-		min_y = std::min(min_y, bounds.position.y);
-		max_x = std::max(max_x, bounds.position.x + bounds.size.x);
-		max_y = std::max(max_y, bounds.position.y + bounds.size.y);
+		bounding_box.min = glm::min(bounding_box.min, f->get_box().min);
+		bounding_box.max = glm::max(bounding_box.max, f->get_box().max);
 	}
-	float width = max_x - min_x;
-	float height = max_y - min_y;
-	sf::Vector2f center = { min_x + width / 2.f, min_y + height / 2.f };
-
-	return { center, {width, height}, sf::degrees(0.f) };
 }
 
 SelectionController* SelectionController::get_instance()
@@ -126,7 +109,7 @@ SelectionController* SelectionController::get_instance()
 	return (instance_ == nullptr) ? instance_ = new SelectionController() : instance_;
 }
 
-std::list<ComplexShape*> SelectionController::get_selected_shapes() { return selected_shapes_; }
+std::list<Shape*> SelectionController::get_selected_shapes() { return selected_shapes_; }
 
 bool SelectionController::is_point_on_selection(sf::Vector2f point)
 {
@@ -135,14 +118,14 @@ bool SelectionController::is_point_on_selection(sf::Vector2f point)
 	return false;
 }
 
-bool SelectionController::try_select_shape(ComplexShape* shape, sf::Vector2f point, bool is_union)
+bool SelectionController::try_select_shape(Shape* shape, sf::Vector2f point, bool is_union)
 {
 	if (!shape->contains(point)) return false;
 	try_add_shape_to_selection(shape, is_union);
 	return true;
 }
 
-void SelectionController::try_add_shape_to_selection(ComplexShape* shape, bool is_union)
+void SelectionController::try_add_shape_to_selection(Shape* shape, bool is_union)
 {
 	if (is_transforming_) return;
 
@@ -164,7 +147,7 @@ void SelectionController::try_add_shape_to_selection(ComplexShape* shape, bool i
 
 void SelectionController::delete_selected_shapes()
 {
-	std::vector<ComplexShape*> toDelete(selected_shapes_.begin(), selected_shapes_.end());
+	std::vector<Shape*> toDelete(selected_shapes_.begin(), selected_shapes_.end());
 	for (auto* shape : toDelete)
 		if (shape) LogicController::get_instance()->delete_shape(shape);
 	clear_selection();
@@ -212,17 +195,17 @@ void SelectionController::try_paste_shapes(sf::Vector2f mouse_position)
 {
 	if (copy_buffer.empty()) return;
 	clear_selection();
-	auto copy_transform = get_all_shapes_bounds_transform(copy_buffer);
-	auto copy_center = copy_transform.position;
-	std::vector<ComplexShape*> pasted;
+	auto sel_box = get_all_shapes_bounds_transform(copy_buffer);
+	auto copy_center = get_vec_mid(sel_box.min, sel_box.max);
+	std::vector<Shape*> pasted;
 	for (auto& proto : copy_buffer) {
 		if (!proto) continue;
 		auto new_shape = proto->clone();
 		auto shape_transform = new_shape->get_transform();
-		auto offset = shape_transform.position - copy_center;
-		new_shape->set_transform(mouse_position + offset, shape_transform.size, shape_transform.rotation);
-		LogicController::get_instance()->add_shape(new_shape);
-		pasted.push_back(new_shape);
+		//auto offset = shape_transform.position - copy_center;
+		//new_shape->set_transform(mouse_position + offset, shape_transform.size, shape_transform.rotation);
+		//LogicController::get_instance()->add_shape(new_shape);
+		//pasted.push_back(new_shape);
 	}
 
 	if (!pasted.empty()) {

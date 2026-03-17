@@ -1,7 +1,7 @@
 #pragma once
 #include <map>
 #include <string>
-#include <glm/glm.hpp>
+#include <SFML/Graphics.hpp>
 
 #include "imgui.h"
 
@@ -21,8 +21,8 @@ private:
 
 public:
 	ButtonAction current_button_action = ButtonAction::None;
-	glm::vec4 background_color = glm::vec4(0.8f);
-	glm::vec4 current_color = glm::vec4(1.0f);
+	sf::Color background_color = sf::Color(30, 30, 30);
+	sf::Color current_color = sf::Color::White;
 
 	static UIController* get_instance();
 
