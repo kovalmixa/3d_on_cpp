@@ -20,7 +20,7 @@ private:
 	~LogicController();
 
 	void copy_color(sf::Vector2f position);
-	void paint_figure(sf::Vector2f position);
+	void paint_shape(sf::Vector2f position);
 
 	void try_find_shape_to_select(sf::Vector2f position);
 public:

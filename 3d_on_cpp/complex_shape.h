@@ -1,13 +1,16 @@
 #pragma once
-
-#pragma once
+#include <deque>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <SFML/Graphics.hpp>
 
 #include "transform_data.h"
 
 class ComplexShape {
 protected:
-    sf::Shape* shape_ = nullptr;
+    std::deque<ComplexShape*> shapes_;
     TransformData transform_data_;
 
     void apply_transform();
@@ -21,8 +24,8 @@ public:
     sf::FloatRect get_global_bounds();
 
     void set_outline(const bool show);
-    sf::Color get_color();
-    void set_color(const sf::Color color);
+    glm::vec4 get_color();
+    void set_color(const glm::vec4 color);
 
     void draw(sf::RenderWindow& window);
 

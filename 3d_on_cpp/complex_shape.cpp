@@ -35,12 +35,12 @@ void ComplexShape::set_outline(const bool show)
 
 }
 
-sf::Color ComplexShape::get_color()
+glm::vec4 ComplexShape::get_color()
 {
-	return sf::Color();
+	return glm::vec4(0.f);
 }
 
-void ComplexShape::set_color(const sf::Color color)
+void ComplexShape::set_color(const glm::vec4 color)
 {
 }
 

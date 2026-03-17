@@ -15,6 +15,15 @@
     <Filter Include="Source Files\ui_controller">
       <UniqueIdentifier>{841bfdd1-fbd6-49e5-b05b-6c904176d033}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\complex_shape">
+      <UniqueIdentifier>{970ea885-0fb4-497b-85e5-559aca983c3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\logic_controller\selection_controller">
+      <UniqueIdentifier>{75027902-0c76-4ad5-a834-e373dd85a7d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\complex_shape\transform_data">
+      <UniqueIdentifier>{fce7c9ea-da90-43fc-b520-7993446871f3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -26,6 +35,15 @@
     <ClCompile Include="ui_controller.cpp">
       <Filter>Source Files\ui_controller</Filter>
     </ClCompile>
+    <ClCompile Include="complex_shape.cpp">
+      <Filter>Source Files\complex_shape</Filter>
+    </ClCompile>
+    <ClCompile Include="selection_controller.cpp">
+      <Filter>Source Files\logic_controller\selection_controller</Filter>
+    </ClCompile>
+    <ClCompile Include="transform_data.cpp">
+      <Filter>Source Files\complex_shape\transform_data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="logic_controller.h">
@@ -34,8 +52,21 @@
     <ClInclude Include="ui_controller.h">
       <Filter>Source Files\ui_controller</Filter>
     </ClInclude>
-    <ClInclude Include="basic_functions.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="basic_functions.h" />
+    <ClInclude Include="complex_shape.h">
+      <Filter>Source Files\complex_shape</Filter>
     </ClInclude>
+    <ClInclude Include="selection_controller.h">
+      <Filter>Source Files\logic_controller\selection_controller</Filter>
+    </ClInclude>
+    <ClInclude Include="save_data_contrainer.h">
+      <Filter>Source Files\complex_shape</Filter>
+    </ClInclude>
+    <ClInclude Include="transform_data.h">
+      <Filter>Source Files\complex_shape\transform_data</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

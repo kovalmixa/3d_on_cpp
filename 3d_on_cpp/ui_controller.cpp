@@ -4,8 +4,6 @@
 #include "ui_controller.h"
 
 UIController* UIController::instance_ = nullptr;
-sf::Color UIController::current_color = sf::Color::White;
-sf::Color UIController::background_color = sf::Color(170, 170, 170);
 
 UIController::UIController() {
 }
@@ -27,7 +25,7 @@ void UIController::button_click(std::string label, ButtonAction& selected_action
     }
 }
 
-void UIController::draw_button(const std::string& label, ButtonAction action = ButtonAction::None, ImVec2 size)
+void UIController::draw_canvas_act_button(const std::string& label, ButtonAction action = ButtonAction::None, ImVec2 size)
 {
     auto it = buttons.find(label);
     if (it == buttons.end()) buttons.insert(std::pair<const std::string, ButtonAction>(label, action));

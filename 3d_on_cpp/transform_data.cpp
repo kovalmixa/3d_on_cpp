@@ -2,8 +2,8 @@
 
 const TransformData TransformData::Default{};
 
-TransformData::TransformData() : position({ 0,0 }), size(0, 0), rotation(sf::degrees(0)) {}
+TransformData::TransformData() : position(0.f), size(0.f), rotation(0.f) {}
 
-TransformData::TransformData(sf::Vector2f position, sf::Vector2f size, sf::Angle rotation)
+TransformData::TransformData(glm::vec3 position, glm::vec3 size, glm::vec3 rotation)
     : position(position), size(size), rotation(rotation) {
 }

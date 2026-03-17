@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <ranges>
 #include <cmath>
+#include <SFML/Graphics.hpp>
 
 #include "basic_functions.h"
 #include "selection_controller.h"

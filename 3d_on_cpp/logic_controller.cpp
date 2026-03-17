@@ -1,7 +1,5 @@
 #include <iostream>
 #include <algorithm>
-#include <SFML/System/Exception.hpp>
-#include <SFML/Graphics.hpp>
 #include <nlohmann/json.hpp>
 
 #include "ui_controller.h"
@@ -15,7 +13,7 @@ LogicController* LogicController::instance_ = nullptr;
 LogicController::LogicController()
 {
 	handlers_ = {
-		{ButtonAction::Paint,	 [this](sf::Vector2f position) { paint_figure(position); } },
+		{ButtonAction::Paint,	 [this](sf::Vector2f position) { paint_shape(position); } },
 		{ButtonAction::Pipette,  [this](sf::Vector2f position) { copy_color(position); }},
 	};
 }
@@ -46,7 +44,7 @@ void LogicController::copy_color(sf::Vector2f position)
 	}
 }
 
-void LogicController::paint_figure(sf::Vector2f position)
+void LogicController::paint_shape(sf::Vector2f position)
 {
 	auto ui_controller = UIController::get_instance();
 	try
@@ -77,6 +75,8 @@ void LogicController::try_find_shape_to_select(sf::Vector2f position)
 
 LogicController* LogicController::get_instance() { return instance_ ? instance_ : instance_ = new LogicController(); }
 
+#pragma region save/load data
+
 void LogicController::load_data()
 {
 	json j;
@@ -86,6 +86,10 @@ void LogicController::save_data()
 {
 	json j;
 }
+
+#pragma endregion
+
+#pragma region execution methods
 
 void LogicController::execute_action(ButtonAction action, sf::Vector2f mouse_position)
 {
@@ -148,11 +152,15 @@ void LogicController::keyboard_action_process(sf::Event event, sf::Vector2f mous
 	}
 }
 
+#pragma endregion
+
+#pragma region drag methods
+
 void LogicController::begin_drag(sf::Vector2f mouse_position)
 {
 	if (is_dragging_) return;
 	is_dragging_ = true;
-	SelectionController::get_instance()->try_begin_drag_transform_mode(mouse_position);
+	SelectionController::get_instance()->try_begin_drag_transform_mode(ray_triangle_intersect(mouse_position));
 }
 
 void LogicController::end_drag()
@@ -167,6 +175,8 @@ void LogicController::update_drag(ButtonAction action, sf::Vector2f mouse_positi
 	auto selection = SelectionController::get_instance();
 	if (action == ButtonAction::None) selection->update_transform(mouse_position);
 }
+
+#pragma endregion
 
 void LogicController::remove_actions()
 {

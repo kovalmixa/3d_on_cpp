@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <string>
+#include <glm/glm.hpp>
 
 #include "imgui.h"
 
@@ -20,12 +21,11 @@ private:
 
 public:
 	ButtonAction current_button_action = ButtonAction::None;
-	static sf::Color background_color;
-	static sf::Color current_color;
+	glm::vec4 background_color = glm::vec4(0.8f);
+	glm::vec4 current_color = glm::vec4(1.0f);
 
 	static UIController* get_instance();
 
 	void button_click(std::string label, ButtonAction& tool);
-
-	void draw_button(const std::string& label, ButtonAction action, ImVec2 size = ImVec2(100, 20));
+	void draw_canvas_act_button(const std::string& label, ButtonAction action, ImVec2 size = ImVec2(100, 20));
 };
