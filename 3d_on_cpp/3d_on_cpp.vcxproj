@@ -124,8 +124,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\ProgrammingTools\ImGuiFileDialog\ImGuiFileDialog.cpp" />
     <ClCompile Include="aabb.cpp" />
-    <ClCompile Include="ImGuiFileDialog\ImGuiFileDialog.cpp" />
     <ClCompile Include="shape.cpp" />
     <ClCompile Include="logic_controller.cpp" />
     <ClCompile Include="main.cpp" />
@@ -133,12 +133,12 @@
     <ClCompile Include="ui_controller.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\ProgrammingTools\ImGuiFileDialog\dirent\dirent.h" />
+    <ClInclude Include="..\..\..\..\..\ProgrammingTools\ImGuiFileDialog\ImGuiFileDialog.h" />
+    <ClInclude Include="..\..\..\..\..\ProgrammingTools\ImGuiFileDialog\ImGuiFileDialogConfig.h" />
     <ClInclude Include="aabb.h" />
     <ClInclude Include="basic_functions.h" />
     <ClInclude Include="geometry.h" />
-    <ClInclude Include="ImGuiFileDialog\dirent\dirent.h" />
-    <ClInclude Include="ImGuiFileDialog\ImGuiFileDialog.h" />
-    <ClInclude Include="ImGuiFileDialog\ImGuiFileDialogConfig.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="shape.h" />
     <ClInclude Include="logic_controller.h" />
