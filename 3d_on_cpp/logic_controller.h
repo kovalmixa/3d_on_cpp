@@ -2,6 +2,7 @@
 #include <deque>
 #include <functional>
 #include <map>
+#include <glm/glm.hpp>
 
 #include "shape.h"
 #include "ui_controller.h"

@@ -64,6 +64,27 @@ void Shape::draw_outline(const glm::mat4& projection, const glm::mat4& view,
     glCullFace(GL_BACK);
 }
 
+void Shape::draw_shadow(ShaderController* shadow_shader, const glm::mat4& light_space_matrix)
+{
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, transform_.position);
+    model = glm::rotate(model, glm::radians(transform_.rotation.x), glm::vec3(1, 0, 0));
+    model = glm::rotate(model, (float)global_clock.getElapsedTime().asSeconds(), glm::vec3(0, 1, 0));
+    model = glm::rotate(model, glm::radians(transform_.rotation.z), glm::vec3(0, 0, 1));
+    model = glm::scale(model, transform_.scale);
+
+    shadow_shader->use();
+    GLint modelLoc = glGetUniformLocation(shadow_shader->program, "u_model");
+    GLint lightLoc = glGetUniformLocation(shadow_shader->program, "u_lightSpaceMatrix");
+
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(lightLoc, 1, GL_FALSE, glm::value_ptr(light_space_matrix));
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(geometry_.indices.size()), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
+
 Shape::Shape() : VAO(0), VBO(0), EBO(0) {
     shader_controller_ = ShaderController::get_instance();
     shader_status = shader_controller_->check_correctness();
@@ -161,7 +182,7 @@ void Shape::draw(sf::RenderWindow& window, glm::vec3 camera_pos, bool is_perspec
     model = glm::rotate(model, (float)global_clock.getElapsedTime().asSeconds(), glm::vec3(0, 1, 0));
     model = glm::rotate(model, glm::radians(transform_.rotation.z), glm::vec3(0, 0, 1));
     model = glm::scale(model, transform_.scale);
-   
+
     draw_outline(projection, view, model, is_perspective);
     shader_controller_->use();
     shader_controller_->set_uniform(projection, view, model);

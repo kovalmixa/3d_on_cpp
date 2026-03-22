@@ -31,6 +31,8 @@ private:
 
     void draw_outline(const glm::mat4& projection, const glm::mat4& view, 
         const glm::mat4& model, bool is_perspective);
+
+    void draw_shadow(ShaderController* shadow_shader, const glm::mat4& light_space_matrix);
 public:
     Shape();
     ~Shape();
