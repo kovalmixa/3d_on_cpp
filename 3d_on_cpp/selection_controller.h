@@ -21,7 +21,6 @@ private:
     const float TRANSFORM_POINTS_SIZE = 5.f;
     const float TRANSFORM_POINTS_DRAG_RADIUS_OFFSET = 10.f;
     bool is_transforming_ = false;
-    bool is_selection_active_ = false;
 
     SelectionController();
     ~SelectionController();
@@ -35,6 +34,8 @@ private:
     void update_transform_to_selected_shapes();
     AABB get_all_shapes_bounds_transform(std::list<Shape*> shapes);
 public:
+    bool is_selection_active = false;
+
     TransformMode transform_mode = TransformMode::Move;
     static SelectionController* get_instance();
 

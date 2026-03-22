@@ -1,13 +1,18 @@
+#ifndef SFML_STATIC
+#define SFML_STATIC
+#endif
+
 #include <iostream>
 #include <algorithm>
 #include <nlohmann/json.hpp>
-#include <fstream>
 #include <string>
-
-#include "basic_functions.h"
+#include "math_functions.h"
+#include "color_functions.h"
+#include "file_functions.h"
 #include "ui_controller.h"
 #include "logic_controller.h"
 #include "selection_controller.h"
+#include "camera_controller.h"
 
 using json = nlohmann::json;
 
@@ -25,6 +30,79 @@ LogicController::~LogicController()
 {
 	for (auto shape : shapes_) delete shape;
 	shapes_.clear();
+}
+
+void LogicController::try_parse_obj_file(std::string file_path)
+{
+	std::string text = read_file(file_path);
+	if (text.empty()) return;
+	delete_all_shapes();
+
+	if (file_path.find(".obj") != std::string::npos) {
+		std::vector<glm::vec3> all_file_verts;
+		std::vector<unsigned int> current_object_inds;
+		size_t vertices_before_object = 0;
+
+		float max_v = std::numeric_limits<float>::lowest();
+		float min_v = std::numeric_limits<float>::max();
+
+		auto save_shape = [&]() {
+			if (!current_object_inds.empty()) {
+				std::vector<glm::vec3> shape_verts;
+				for (size_t i = vertices_before_object; i < all_file_verts.size(); ++i) {
+					glm::vec3 v = all_file_verts[i];
+					v = glm::vec3(
+						map_value<float>(v.x, min_v, max_v, -1, 1),
+						map_value<float>(v.y, min_v, max_v, -1, 1),
+						map_value<float>(v.z, min_v, max_v, -1, 1)
+					);
+					shape_verts.push_back(v);
+				}
+				Shape* new_shape = new Shape();
+				new_shape->set_geometry(Geometry(shape_verts, current_object_inds));
+				new_shape->set_color(glm::vec4(1, 1, 1, 1));
+				shapes_.push_back(new_shape);
+
+				vertices_before_object = all_file_verts.size();
+				current_object_inds.clear();
+				max_v = std::numeric_limits<float>::lowest();
+				min_v = std::numeric_limits<float>::max();
+			}
+			};
+
+		std::stringstream main_ss(text);
+		std::string line;
+		while (std::getline(main_ss, line)) {
+			std::stringstream ss(line);
+			std::string prefix;
+			ss >> prefix;
+			if (prefix == "o") save_shape();
+			else if (prefix == "v") {
+				glm::vec3 v;
+				ss >> v.x >> v.y >> v.z;
+				all_file_verts.push_back(v);
+				max_v = std::max({ max_v, v.x, v.y, v.z });
+				min_v = std::min({ min_v, v.x, v.y, v.z });
+			}
+			else if (prefix == "f") {
+				std::string vertex_str;
+				std::vector<unsigned int> face_indices;
+				while (ss >> vertex_str) {
+					size_t first_slash = vertex_str.find('/');
+					int vIdx = std::stoi(vertex_str.substr(0, first_slash));
+
+					unsigned int finalIdx = static_cast<unsigned int>(vIdx - 1 - vertices_before_object);
+					face_indices.push_back(finalIdx);
+				}
+				for (size_t i = 1; i < face_indices.size() - 1; ++i) {
+					current_object_inds.push_back(face_indices[0]);
+					current_object_inds.push_back(face_indices[i]);
+					current_object_inds.push_back(face_indices[i + 1]);
+				}
+			}
+		}
+		save_shape();
+	}
 }
 
 void LogicController::copy_color(sf::Vector2f position)
@@ -78,77 +156,17 @@ void LogicController::try_find_shape_to_select(sf::Vector2f position)
 
 LogicController* LogicController::get_instance() { return instance_ ? instance_ : instance_ = new LogicController(); }
 
-#pragma region save/load data
-
-void LogicController::load_data(std::string file_path)
+void LogicController::load_shapes(std::string file_path)
 {
-	std::ifstream f(file_path);
-	if (!f.is_open()) return;
 	delete_all_shapes();
 	if (file_path.find(".obj") != std::string::npos) {
-		std::string line;
-		std::vector<glm::vec3> current_verts;
-		float max_v = std::numeric_limits<float>::lowest();
-		float min_v = std::numeric_limits<float>::max();
-		std::vector<unsigned int> current_inds;
-		std::string current_name;
-
-		auto save_shape = [&]() {
-			if (!current_verts.empty()) {
-				for (auto& v : current_verts) {
-					v = glm::vec3(
-						map_value<float>(v.x, min_v, max_v, -1, 1),
-						map_value<float>(v.y, min_v, max_v, -1, 1),
-						map_value<float>(v.z, min_v, max_v, -1, 1)
-					);
-				}
-				Shape* new_shape = new Shape();
-				new_shape->set_geometry(Geometry(current_verts, current_inds));
-				new_shape->set_color(glm::vec4(1, 1, 1, 1));
-				shapes_.push_back(new_shape);
-				current_verts.clear();
-				current_inds.clear();
-				max_v = 0;
-			}
-			};
-
-		while (std::getline(f, line)) {
-			std::stringstream ss(line);
-			std::string prefix;
-			ss >> prefix;
-
-			if (prefix == "o") {
-				save_shape();
-				ss >> current_name;
-			}
-			else if (prefix == "v") {
-				glm::vec3 v;
-				ss >> v.x >> v.y >> v.z;
-				max_v = std::max(max_v, std::max(v.x, std::max(v.y, v.z)));
-				min_v = std::min(min_v, std::min(v.x, std::min(v.y, v.z)));
-				current_verts.push_back(v);
-			}
-			else if (prefix == "f") {
-				std::string vertex_str;
-				std::vector<unsigned int> face_indices;
-				while (ss >> vertex_str) {
-					size_t first_slash = vertex_str.find('/');
-					unsigned int vIdx = std::abs(stoi(vertex_str.substr(0, first_slash)));
-					face_indices.push_back(vIdx - 1);
-				}
-
-				for (size_t i = 1; i < face_indices.size() - 1; ++i) {
-					current_inds.push_back(face_indices[0]);
-					current_inds.push_back(face_indices[i]);
-					current_inds.push_back(face_indices[i + 1]);
-				}
-			}
-		}
-		save_shape();
+		try_parse_obj_file(file_path);
 		return;
 	}
 	try {
-		json data = json::parse(f);
+		std::string text = read_file(file_path);
+		if (text.empty()) return;
+		json data = json::parse(text);
 		if (data.contains("shapes") && data["shapes"].is_array()) {
 			for (const auto& item : data["shapes"]) {
 				Shape* new_shape = new Shape();
@@ -162,23 +180,6 @@ void LogicController::load_data(std::string file_path)
 		std::cerr << "JSON Load Error: " << e.what() << std::endl;
 	}
 }
-
-void LogicController::save_data(std::string file_path)
-{
-	std::ofstream outFile(file_path);
-	if (!outFile.is_open()) return;
-
-	try {
-		json data;
-		data["shapes"] = json::array();
-		for (Shape* s : shapes_) if (s) data["shapes"].push_back(*s);
-		outFile << data.dump(4);
-	}
-	catch (json::exception& e) {
-		std::cerr << "JSON Save Error: " << e.what() << std::endl;
-	}
-}
-#pragma endregion
 
 #pragma region execution methods
 
@@ -198,47 +199,42 @@ void LogicController::keyboard_action_process(sf::Event event, sf::Vector2f mous
 	if (!event.is<sf::Event::KeyPressed>()) return;
 	const auto* key = event.getIf<sf::Event::KeyPressed>();
 	auto selection_controller = SelectionController::get_instance();
-
+	if (selection_controller->is_selection_active) {
+		switch (key->code) {
+		case sf::Keyboard::Key::Delete:
+		case sf::Keyboard::Key::Backspace: { selection_controller->delete_selected_shapes(); break; }
+		case sf::Keyboard::Key::W: { selection_controller->transform_mode = TransformMode::Move; break; }
+		case sf::Keyboard::Key::R: { selection_controller->transform_mode = TransformMode::Rotate; break; }
+		}
+		if (key->control)
+		{
+			switch (key->code)
+			{
+			case sf::Keyboard::Key::X: { selection_controller->delete_selected_shapes(); }
+			case sf::Keyboard::Key::C: { selection_controller->try_copy_shapes(); break; }
+			}
+		}
+	}
+	else {
+		switch (key->code) {
+			CameraController::get_instance()->process_keyboard(key);
+			if (key->control)
+			{
+				switch (key->code)
+				{
+				case sf::Keyboard::Key::A: {
+					for (auto shape : shapes_) selection_controller->try_add_shape_to_selection(shape, true);
+				}
+				}
+			}
+		}
+	}
 	switch (key->code) {
-	case sf::Keyboard::Key::Delete:
-	case sf::Keyboard::Key::Backspace:
-	{
-		selection_controller->delete_selected_shapes();
-		break;
-	}
-	case sf::Keyboard::Key::W:
-	{
-		selection_controller->transform_mode = TransformMode::Move;
-		break;
-	}
-	case sf::Keyboard::Key::R:
-	{
-		selection_controller->transform_mode = TransformMode::Rotate;
-		break;
-	}
-	}
-	if (key->control)
-	{
-		switch (key->code)
+		if (key->control)
 		{
-		case sf::Keyboard::Key::X:
-		{
-			selection_controller->delete_selected_shapes();
-		}
-		case sf::Keyboard::Key::C:
-		{
-			selection_controller->try_copy_shapes();
-			break;
-		}
-		case sf::Keyboard::Key::V:
-		{
-			selection_controller->try_paste_shapes(mouse_position);
-			break;
-		}
-		case sf::Keyboard::Key::A:
-		{
-			for (auto shape : shapes_) selection_controller->try_add_shape_to_selection(shape, true);
-		}
+			switch (key->code) {
+			case sf::Keyboard::Key::V: { selection_controller->try_paste_shapes(mouse_position); break; }
+			}
 		}
 	}
 }
@@ -299,6 +295,7 @@ void LogicController::delete_all_shapes()
 
 void LogicController::render_shapes(sf::RenderWindow& window)
 {
-	for (auto& shape : shapes_) shape->draw(window);
+	for (auto& shape : shapes_) 
+		shape->draw(window, CameraController::get_instance()->position);
 	SelectionController::get_instance()->draw_selection(window);
 }

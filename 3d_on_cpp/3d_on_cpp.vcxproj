@@ -70,6 +70,13 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgTriplet>x64-windows-static</VcpkgTriplet>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgTriplet>x64-windows-static</VcpkgTriplet>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -103,10 +110,17 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <UndefinePreprocessorDefinitions>SFML_STATIC</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;gdi32.lib;
+
+user32.lib
+
+;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -126,6 +140,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\ProgrammingTools\ImGuiFileDialog\ImGuiFileDialog.cpp" />
     <ClCompile Include="aabb.cpp" />
+    <ClCompile Include="camera_controller.cpp" />
+    <ClCompile Include="shader_controller.cpp" />
     <ClCompile Include="shape.cpp" />
     <ClCompile Include="logic_controller.cpp" />
     <ClCompile Include="main.cpp" />
@@ -137,14 +153,19 @@
     <ClInclude Include="..\..\..\..\..\ProgrammingTools\ImGuiFileDialog\ImGuiFileDialog.h" />
     <ClInclude Include="..\..\..\..\..\ProgrammingTools\ImGuiFileDialog\ImGuiFileDialogConfig.h" />
     <ClInclude Include="aabb.h" />
-    <ClInclude Include="basic_functions.h" />
+    <ClInclude Include="camera_controller.h" />
+    <ClInclude Include="math_functions.h" />
+    <ClInclude Include="color_functions.h" />
+    <ClInclude Include="file_functions.h" />
     <ClInclude Include="geometry.h" />
-    <ClInclude Include="shader.h" />
+    <ClInclude Include="random_functions.h" />
+    <ClInclude Include="shader_controller.h" />
     <ClInclude Include="shape.h" />
     <ClInclude Include="logic_controller.h" />
     <ClInclude Include="selection_controller.h" />
     <ClInclude Include="transform.h" />
     <ClInclude Include="ui_controller.h" />
+    <ClInclude Include="vector_functions.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

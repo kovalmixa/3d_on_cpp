@@ -1,9 +1,13 @@
+#ifndef SFML_STATIC
+#define SFML_STATIC
+#endif
+
 #include <algorithm>
 #include <ranges>
 #include <cmath>
 #include <SFML/Graphics.hpp>
 
-#include "basic_functions.h"
+#include "vector_functions.h"
 #include "selection_controller.h"
 #include "logic_controller.h"
 
@@ -29,8 +33,8 @@ void SelectionController::remove_shape_from_selection(Shape* figure)
 {
 	if (!figure) return;
 	selected_shapes_.remove(figure);
-	is_selection_active_ = !(selected_shapes_.empty());
-	if (is_selection_active_) {
+	is_selection_active = !(selected_shapes_.empty());
+	if (is_selection_active) {
 		update_transform_data();
 		update_transform_points();
 	}
@@ -104,8 +108,7 @@ AABB SelectionController::get_all_shapes_bounds_transform(std::list<Shape*> figu
 	}
 }
 
-SelectionController* SelectionController::get_instance()
-{
+SelectionController* SelectionController::get_instance() {
 	return (instance_ == nullptr) ? instance_ = new SelectionController() : instance_;
 }
 
@@ -113,7 +116,7 @@ std::list<Shape*> SelectionController::get_selected_shapes() { return selected_s
 
 bool SelectionController::is_point_on_selection(sf::Vector2f point)
 {
-	if (!is_selection_active_) return false;
+	if (!is_selection_active) return false;
 	if (selection_rect_.getGlobalBounds().contains(point)) return true;
 	return false;
 }
@@ -136,13 +139,13 @@ void SelectionController::try_add_shape_to_selection(Shape* shape, bool is_union
 		selected_shapes_.remove(shape);
 		shape->set_outline(false);
 	}
-	is_selection_active_ = !(selected_shapes_.size() == 0);
-	if (is_selection_active_) {
+	is_selection_active = !(selected_shapes_.size() == 0);
+	if (is_selection_active) {
 		update_transform_data();
 		update_transform_points();
 	}
 	for (auto& shape : selected_shapes_)
-		shape->set_outline(is_selection_active_);
+		shape->set_outline(is_selection_active);
 }
 
 void SelectionController::delete_selected_shapes()
@@ -158,12 +161,12 @@ void SelectionController::clear_selection()
 	for (auto& shape : selected_shapes_)
 		if (shape) shape->set_outline(false);
 	selected_shapes_.clear();
-	is_selection_active_ = false;
+	is_selection_active = false;
 }
 
 void SelectionController::try_begin_drag_transform_mode(sf::Vector2f mouse_position)
 {
-	if (!is_selection_active_) return;
+	if (!is_selection_active) return;
 	if (selection_rect_.getGlobalBounds().contains(mouse_position))
 		is_transforming_ = true;
 }
@@ -172,7 +175,7 @@ void SelectionController::end_drag_transform_mode() { is_transforming_ = false; 
 
 void SelectionController::update_transform(sf::Vector2f mouse_position)
 {
-	if (!is_selection_active_ || !is_transforming_) return;
+	if (!is_selection_active || !is_transforming_) return;
 	last_transform_data = selection_transform_data;
 	switch (transform_mode)
 	{
@@ -183,7 +186,7 @@ void SelectionController::update_transform(sf::Vector2f mouse_position)
 
 void SelectionController::try_copy_shapes()
 {
-	if (!is_selection_active_) return;
+	if (!is_selection_active) return;
 	for (auto shape : copy_buffer) delete shape;
 	copy_buffer.clear();
 
@@ -216,7 +219,7 @@ void SelectionController::try_paste_shapes(sf::Vector2f mouse_position)
 
 void SelectionController::draw_selection(sf::RenderWindow& window)
 {
-	if (is_selection_active_) {
+	if (is_selection_active) {
 		window.draw(selection_rect_);
 	}
 }

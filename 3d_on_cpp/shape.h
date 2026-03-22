@@ -11,13 +11,15 @@
 #include "aabb.h"
 #include "transform.h"
 #include "geometry.h"
-#include "shader.h"
+#include "shader_controller.h"
 
 class Shape {
 private:
     GLuint VAO, VBO, EBO;
     sf::Clock global_clock;
-    Shader* shader_;
+    GLuint shaderProgramID;
+    ShaderController* shader_controller_;
+    bool shader_status = true;
     Geometry geometry_;
     Transform transform_;
     glm::vec4 color_;
@@ -26,7 +28,7 @@ private:
     void apply_transform();
     void set_bounding_box();
 
-    void draw_outline();
+    void draw_outline(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& model);
 public:
     Shape();
     ~Shape();
@@ -43,7 +45,7 @@ public:
     void set_color(const glm::vec4& color);
     AABB get_box();
 
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window, glm::vec3 camera_pos);
     bool contains(const sf::Vector2f point);
     Shape* clone();
 };

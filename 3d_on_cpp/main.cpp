@@ -1,6 +1,10 @@
+#ifndef SFML_STATIC
+#define SFML_STATIC
+#endif
+
+#include <SFML/Graphics.hpp>
 #include <imgui-SFML.h>
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
-#include <SFML/Graphics.hpp>
 #include <imgui.h>
 #include <thread>
 #include <atomic>
@@ -15,10 +19,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "basic_functions.h"
 #include "logic_controller.h"
 #include "ui_controller.h"
-#include "basic_functions.h"
 
 static std::atomic running(true);
 static std::mutex event_mutex;
@@ -126,11 +128,11 @@ void rendering_pipeline(sf::RenderWindow* window) {
         ImGui::EndGroup();
 
         ImGui::BeginGroup();
-        if (ImGui::Button("Save", ImVec2(50, 20))) {
-            IGFD::FileDialogConfig config;
-            config.path = ".";
-            ImGuiFileDialog::Instance()->OpenDialog("ChooseDirSave", "Choose Directory", ".json, .txt", config);
-        }
+        //if (ImGui::Button("Save", ImVec2(50, 20))) {
+        //    IGFD::FileDialogConfig config;
+        //    config.path = ".";
+        //    ImGuiFileDialog::Instance()->OpenDialog("ChooseDirSave", "Choose Directory", ".json, .txt", config);
+        //}
         if (ImGui::Button("Load", ImVec2(50, 20))) {
             IGFD::FileDialogConfig config;
             config.path = ".";
@@ -141,21 +143,15 @@ void rendering_pipeline(sf::RenderWindow* window) {
         ImGui::EndMainMenuBar();
     }
 #pragma region dialog windows
-    if (ImGuiFileDialog::Instance()->Display("ChooseDirSave")) {
-        if (ImGuiFileDialog::Instance()->IsOk())
-            lc->save_data(ImGuiFileDialog::Instance()->GetFilePathName());
-        ImGuiFileDialog::Instance()->Close();
-    }
-
     if (ImGuiFileDialog::Instance()->Display("ChooseDirLoad")) {
         if (ImGuiFileDialog::Instance()->IsOk())
-            lc->load_data(ImGuiFileDialog::Instance()->GetFilePathName());
+            lc->load_shapes(ImGuiFileDialog::Instance()->GetFilePathName());
         ImGuiFileDialog::Instance()->Close();
     }
 #pragma endregion
 
-    //window->clear(ui->background_color);
-    window->clear(glm_sf_col(rainbow_function(x)));
+    window->clear(ui->background_color);
+    //window->clear(glm_sf_col(rainbow_function(x)));
 
     LogicController::get_instance()->render_shapes(*window);
     ImGui::SFML::Render(*window);
@@ -186,6 +182,8 @@ int main()
 {
     sf::ContextSettings settings;
     settings.depthBits = 24;
+    settings.majorVersion = 3;
+    settings.minorVersion = 3;
     sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "SFML 3d");
     window.setActive(false);
     window.setFramerateLimit(60);

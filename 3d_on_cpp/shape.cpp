@@ -1,5 +1,4 @@
 #include "shape.h"
-#include "basic_functions.h"
 
 void Shape::apply_transform()
 {
@@ -19,16 +18,20 @@ void Shape::set_bounding_box()
     }
 }
 
-void Shape::draw_outline()
+void Shape::draw_outline(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& model)
 {
+    if (!shader_controller_->try_use()) return;
+
+    shader_controller_->set_uniform(projection, view, model);
+    GLint colorLoc = glGetUniformLocation(shader_controller_->program, "u_color");
+    glUniform4f(colorLoc, 0.f, 0.f, 0.f, 1.f);
+
     glEnable(GL_POLYGON_OFFSET_LINE);
-    glPolygonOffset(-1.0f, -1.0f); // чтобы линии не мерцали (z-fighting)
+    glPolygonOffset(-1.f, -1.f);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // рисуем как линии
-    glLineWidth(2.5f); // толщина обводки
-
-    glDisable(GL_DEPTH_TEST); // чтобы обводка была поверх
-    glColor3f(0.f, 0.f, 0.f); // цвет обводки (черный)
+    glDisable(GL_DEPTH_TEST);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(2.5f);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES,
@@ -38,12 +41,16 @@ void Shape::draw_outline()
     glBindVertexArray(0);
 
     glEnable(GL_DEPTH_TEST);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // вернуть обратно
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDisable(GL_POLYGON_OFFSET_LINE);
 }
 
 Shape::Shape() : VAO(0), VBO(0), EBO(0) {
-    shader_ = new Shader("C:/vertex.glsl", "C:/fragment.glsl");
+    shader_controller_ = ShaderController::get_instance();
+    color_ = glm::vec4(1.f);
+    transform_.position = glm::vec3(0.0f);
+    transform_.rotation = glm::vec3(0.0f);
+    transform_.scale = glm::vec3(1.0f);
 }
 
 Shape::~Shape()
@@ -108,44 +115,45 @@ void Shape::set_color(const glm::vec4& color)
 
 AABB Shape::get_box() { return bounding_box_; }
 
-void Shape::draw(sf::RenderWindow& window) {
-    window.pushGLStates();
-    sf::Vector2u windowSize = window.getSize();
-    float aspect = static_cast<float>(windowSize.x) / std::max(static_cast<float>(windowSize.y), 1.0f);
+void Shape::draw(sf::RenderWindow& window, glm::vec3 camera_pos)
+{
+    window.resetGLStates();
 
     glEnable(GL_DEPTH_TEST);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_STENCIL_TEST);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    sf::Vector2u windowSize = window.getSize();
     glViewport(0, 0, windowSize.x, windowSize.y);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    float aspect = static_cast<float>(windowSize.x) /
+        std::max(static_cast<float>(windowSize.y), 1.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
+    glm::mat4 view = glm::lookAt(camera_pos, camera_pos + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, transform_.position);
+    model = glm::rotate(model, glm::radians(transform_.rotation.x), glm::vec3(1, 0, 0));
+    model = glm::rotate(model, (float)global_clock.getElapsedTime().asSeconds(), glm::vec3(0, 1, 0));
+    model = glm::rotate(model, glm::radians(transform_.rotation.z), glm::vec3(0, 0, 1));
+    model = glm::scale(model, transform_.scale);
 
-    gluPerspective(45.f, aspect, 0.1f, 100.f);
+    shader_status = shader_controller_->try_use();
+    if (!shader_status) return;
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glTranslatef(0.f, 0.f, -5.f);
-    glTranslatef(transform_.position.x, transform_.position.y, transform_.position.z);
-    glRotatef(transform_.rotation.x, 1, 0, 0);
-    glRotatef((float)global_clock.getElapsedTime().asSeconds() * 50.f, 0, 1, 0);
-    glRotatef(transform_.rotation.z, 0, 0, 1);
-    glScalef(transform_.scale.x, transform_.scale.y, transform_.scale.z);
-    //glColor4f(color_.r, color_.g, color_.b, color_.a);
+    shader_controller_->set_uniform(projection, view, model);
 
-    //shader_->use();
-    //GLint colorLoc = glGetUniformLocation(shader_->program, "uColor");
-    //glUniform4f(colorLoc, 1, 1, 1, 1);
+    GLint colorLoc = glGetUniformLocation(shader_controller_->program, "u_color");
 
+    glUniform4f(colorLoc, color_.r, color_.g, color_.b, color_.a);
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(geometry_.indices.size()), GL_UNSIGNED_INT, 0);
+    glDrawElements(
+        GL_TRIANGLES,
+        static_cast<GLsizei>(geometry_.indices.size()),
+        GL_UNSIGNED_INT,
+        0
+    );
+
     glBindVertexArray(0);
-
-    //draw_outline();
-
-    window.popGLStates();
+    //draw_outline(projection, view, model);
 }
 
 bool Shape::contains(const sf::Vector2f point)

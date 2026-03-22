@@ -2,6 +2,7 @@
 #include <deque>
 #include <functional>
 #include <map>
+
 #include "shape.h"
 #include "ui_controller.h"
 
@@ -19,6 +20,8 @@ private:
 	LogicController();
 	~LogicController();
 
+	void try_parse_obj_file(std::string file_path);
+
 	void copy_color(sf::Vector2f position);
 	void paint_shape(sf::Vector2f position);
 
@@ -26,8 +29,7 @@ private:
 public:
 	static LogicController* get_instance();
 
-	void load_data(std::string file_path);
-	void save_data(std::string file_path);
+	void load_shapes(std::string file_path);
 
 	void execute_action(ButtonAction action, sf::Vector2f mouse_position);
 	void keyboard_action_process(const sf::Event event, sf::Vector2f mouse_position);
