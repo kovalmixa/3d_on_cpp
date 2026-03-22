@@ -13,7 +13,6 @@ private:
 	const float MODELS_UPSCALE = 1.5;
 	std::deque<Shape*> shapes_;
 	std::map<ButtonAction, std::function<void(sf::Vector2f)>> handlers_;
-
 	bool is_dragging_ = false;
 	sf::Vector2f drag_start_;
 
@@ -41,5 +40,5 @@ public:
 	void add_shape(Shape* shape);
 	void delete_shape(Shape*& shape);
 	void delete_all_shapes();
-	void render_shapes(sf::RenderWindow& window);
+	void render_shapes(sf::RenderWindow& window, glm::vec3 view_position);
 };

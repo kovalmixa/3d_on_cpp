@@ -16,6 +16,7 @@ public:
     GLuint program;
 
     static ShaderController* get_instance();
+    bool check_correctness();
     void set_uniform(glm::mat4 projection, glm::mat4 view, glm::mat4 model);
-    bool try_use();
+    void use();
 };

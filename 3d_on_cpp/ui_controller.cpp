@@ -5,41 +5,56 @@
 
 UIController* UIController::instance_ = nullptr;
 
-UIController::UIController() {
+void UIController::show_activeness(bool is_active)
+{
+    if (!is_active) return;
+    ImGui::PushStyleColor(ImGuiCol_Button, ACTIVE_BTN_COLOR);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor();
 }
 
 UIController* UIController::get_instance() { return instance_ ? instance_ : (instance_ = new UIController()); }
 
 void UIController::button_click(std::string label, ButtonAction& selected_action)
 {
-    auto it = buttons.find(label);
-    if (it == buttons.end()) return;
+    auto it = buttons_.find(label);
+    if (it == buttons_.end()) return;
     if (current_button_action == ButtonAction::None || current_button_action != selected_action)
-    {
         current_button_action = it->second;
-        selected_action = current_button_action;
-    }
-    else if (current_button_action == selected_action) {
+    else if (current_button_action == selected_action) 
         current_button_action = ButtonAction::None;
-        selected_action = current_button_action;
+}
+
+bool UIController::is_action_active(const ButtonAction& action)
+{
+    return (current_button_action == action || std::find(check_box_actions.begin(),
+        check_box_actions.end(), action) != check_box_actions.end()) && action != ButtonAction::None;
+}
+
+void UIController::draw_checkbox(const std::string& label, ButtonAction action)
+{
+    if (checks_states_.find(label) == checks_states_.end()) checks_states_[label] = false;
+
+    if (ImGui::Checkbox(label.c_str(), &checks_states_[label]))
+    {
+        if (checks_states_[label] && !is_action_active(action)) check_box_actions.push_back(action);
+        else check_box_actions.erase(std::remove(check_box_actions.begin(), 
+            check_box_actions.end(), action), check_box_actions.end());
     }
 }
 
-void UIController::draw_canvas_act_button(const std::string& label, ButtonAction action = ButtonAction::None, ImVec2 size)
+void UIController::draw_once_act_button(std::string& label, void(*func)())
 {
-    auto it = buttons.find(label);
-    if (it == buttons.end()) buttons.insert(std::pair<const std::string, ButtonAction>(label, action));
-    bool active = (action == current_button_action && action != ButtonAction::None);
+    if (ImGui::Button(label.c_str(), ImVec2(label.size() * 10, 20))) {
+        func(); show_activeness(true);
+    }
+}
 
-    if (active)
-    {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 1.0f, 1.0f));
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
-    }
-    if (ImGui::Button(label.c_str(), size)) button_click(label, action);
-    if (active)
-    {
-        ImGui::PopStyleVar();
-        ImGui::PopStyleColor();
-    }
+void UIController::draw_act_button(const std::string& label, ButtonAction action = ButtonAction::None)
+{
+    if (buttons_.find(label) == buttons_.end() && action != ButtonAction::None)
+        buttons_.insert(std::pair<const std::string, ButtonAction>(label, action));
+    if (ImGui::Button(label.c_str(), ImVec2(label.size() * 10, 20))) button_click(label, action);
+    show_activeness(is_action_active(action));
 }

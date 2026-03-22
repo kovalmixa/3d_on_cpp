@@ -39,6 +39,20 @@ ShaderController* ShaderController::get_instance() {
     return (instance_ == nullptr) ? instance_ = new ShaderController(VERT_SHAD_PATH, FRAG_SHAD_PATH) : instance_;
 }
 
+bool ShaderController::check_correctness()
+{
+    GLint success;
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        char infoLog[512];
+        glGetProgramInfoLog(program, 512, NULL, infoLog);
+        printf("PROGRAM ERROR:\n%s", infoLog);
+        return false;
+    }
+    return true;
+}
+
 void ShaderController::set_uniform(glm::mat4 projection, glm::mat4 view, glm::mat4 model)
 {
     GLint projLoc = glGetUniformLocation(program, "u_projection");
@@ -50,18 +64,4 @@ void ShaderController::set_uniform(glm::mat4 projection, glm::mat4 view, glm::ma
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 }
 
-bool ShaderController::try_use()
-{
-    GLint success;
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        char infoLog[512];
-        glGetProgramInfoLog(program, 512, NULL, infoLog);
-        printf("PROGRAM ERROR:\n%s", infoLog);
-        return false;
-    }
-
-    glUseProgram(program);
-    return true;
-}
+void ShaderController::use() { glUseProgram(program); }

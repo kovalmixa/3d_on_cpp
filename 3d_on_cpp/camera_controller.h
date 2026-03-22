@@ -6,7 +6,7 @@ class CameraController {
 private:
 	static CameraController* instance_;
 
-	const float SPEED = 0.05f;
+	const float SPEED = 3.f;
 
 	CameraController() = default;
 	~CameraController() = default;
@@ -15,5 +15,5 @@ public:
 
 	static CameraController* get_instance();
 
-	void process_keyboard(const sf::Event::KeyPressed* key);
+	void process_keyboard(const float dt);
 };

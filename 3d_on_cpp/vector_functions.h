@@ -14,8 +14,6 @@ inline glm::vec2 get_vector_from_length_and_angle(const float& length, const flo
     return glm::vec2(length * std::cos(rad), length * std::sin(rad));
 }
 
-inline float get_vector_length(const glm::vec2& v) { return glm::length(v); }
-
 inline float angle_between_vectors_2d(const glm::vec2& v1, const glm::vec2& v2) {
     return std::atan2(v1.x * v2.y - v1.y * v2.x, glm::dot(v1, v2));
 }

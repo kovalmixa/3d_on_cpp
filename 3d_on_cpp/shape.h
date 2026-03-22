@@ -23,12 +23,14 @@ private:
     Geometry geometry_;
     Transform transform_;
     glm::vec4 color_;
+    GLint shader_color_;
     AABB bounding_box_;
 
     void apply_transform();
     void set_bounding_box();
 
-    void draw_outline(const glm::mat4& projection, const glm::mat4& view, const glm::mat4& model);
+    void draw_outline(const glm::mat4& projection, const glm::mat4& view, 
+        const glm::mat4& model, bool is_perspective);
 public:
     Shape();
     ~Shape();
@@ -45,7 +47,7 @@ public:
     void set_color(const glm::vec4& color);
     AABB get_box();
 
-    void draw(sf::RenderWindow& window, glm::vec3 camera_pos);
+    void draw(sf::RenderWindow& window, glm::vec3 camera_pos, bool is_perspective);
     bool contains(const sf::Vector2f point);
     Shape* clone();
 };

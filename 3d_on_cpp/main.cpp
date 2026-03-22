@@ -14,62 +14,62 @@
 #include <vector>
 
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "logic_controller.h"
+#include "selection_controller.h"
 #include "ui_controller.h"
+#include "camera_controller.h"
 
 static std::atomic running(true);
 static std::mutex event_mutex;
 static std::vector<sf::Event> event_queue;
 static sf::Clock delta_clock;
 
-static int x = 0;
-
-void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& events)
+void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& events, float dt)
 {
     auto logic_controller = LogicController::get_instance();
     auto ui_controller = UIController::get_instance();
+    sf::Vector2f mouse_position;
+    CameraController::get_instance()->process_keyboard(dt);
+
     for (auto& event : events)
     {
         ImGui::SFML::ProcessEvent(*window, event);
+        mouse_position = window->mapPixelToCoords(sf::Mouse::getPosition(*window));
 
         // Mouse pressed
         if (const auto* mouseEvent = event.getIf<sf::Event::MouseButtonPressed>())
         {
+            sf::Vector2f mouse_position = window->mapPixelToCoords(mouseEvent->position);
             bool overUI = ImGui::IsAnyItemHovered() || ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
             if (!overUI)
             {
                 if (mouseEvent->button == sf::Mouse::Button::Left)
                 {
-                    sf::Vector2f mouse_position = window->mapPixelToCoords(mouseEvent->position);
-                    logic_controller->execute_action(ui_controller->current_button_action, mouse_position);
-                    logic_controller->begin_drag(mouse_position);
+                    if (ui_controller->current_button_action == ButtonAction::None &&
+                        SelectionController::get_instance()->is_point_on_selection(mouse_position))
+                    {
+                        logic_controller->begin_drag(mouse_position);
+                    }
+                    else logic_controller->execute_action(ui_controller->current_button_action, mouse_position);
                 }
                 else if (const auto* mouseEvent = event.getIf<sf::Event::MouseButtonReleased>())
-                {
-                    if (mouseEvent->button == sf::Mouse::Button::Left)
-                        logic_controller->end_drag();
-                }
-                else if (mouseEvent->button == sf::Mouse::Button::Right)
-                {
+                    if (mouseEvent->button == sf::Mouse::Button::Left) logic_controller->end_drag();
+                    else if (mouseEvent->button == sf::Mouse::Button::Right &&
+                        SelectionController::get_instance()->is_point_on_selection(mouse_position))
+                    {
 
-                }
+                    }
             }
-            else if (mouseEvent->button == sf::Mouse::Button::Right) logic_controller->remove_actions();
-            if (mouseEvent->button == sf::Mouse::Button::Left)
-            {
-                // Handle UI interactions if necessary
-            }
+            if (mouseEvent->button == sf::Mouse::Button::Right) logic_controller->remove_actions();
         }
 
         //Mouse released
         if (const auto* mouseEvent = event.getIf<sf::Event::MouseButtonReleased>())
             if (mouseEvent->button == sf::Mouse::Button::Left)
                 logic_controller->end_drag();
+
+        logic_controller->keyboard_action_process(event, mouse_position);
 
         if (event.is<sf::Event::Closed>())
         {
@@ -123,8 +123,9 @@ void rendering_pipeline(sf::RenderWindow* window) {
         }
 #pragma endregion
         ImGui::Text("Color picker:");
-        ui->draw_canvas_act_button("Paint", ButtonAction::Paint, ImVec2(50, 20));
-        ui->draw_canvas_act_button("Pipette", ButtonAction::Pipette);
+        ui->draw_act_button("Paint", ButtonAction::Paint);
+        ui->draw_act_button("Pipette", ButtonAction::Pipette);
+        ui->draw_checkbox("Persp", ButtonAction::Perspective);
         ImGui::EndGroup();
 
         ImGui::BeginGroup();
@@ -149,11 +150,10 @@ void rendering_pipeline(sf::RenderWindow* window) {
         ImGuiFileDialog::Instance()->Close();
     }
 #pragma endregion
-
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     window->clear(ui->background_color);
-    //window->clear(glm_sf_col(rainbow_function(x)));
 
-    LogicController::get_instance()->render_shapes(*window);
+    LogicController::get_instance()->render_shapes(*window, CameraController::get_instance()->position);
     ImGui::SFML::Render(*window);
 
     window->display();
@@ -166,13 +166,14 @@ void window_render_thread(sf::RenderWindow* window)
 
     while (running)
     {
-        x = x >= 1023 ? 0 : ++x;
+        sf::Time elapsed = delta_clock.restart();
+        float dt = elapsed.asSeconds();
         std::vector<sf::Event> current_frame_events;
         {
             std::lock_guard<std::mutex> lock(event_mutex);
             current_frame_events.swap(event_queue);
         }
-        logic_pipeline(window, current_frame_events);
+        logic_pipeline(window, current_frame_events, dt);
         rendering_pipeline(window);
     }
     ImGui::SFML::Shutdown();

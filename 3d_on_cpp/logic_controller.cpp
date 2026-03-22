@@ -12,7 +12,6 @@
 #include "ui_controller.h"
 #include "logic_controller.h"
 #include "selection_controller.h"
-#include "camera_controller.h"
 
 using json = nlohmann::json;
 
@@ -217,24 +216,25 @@ void LogicController::keyboard_action_process(sf::Event event, sf::Vector2f mous
 	}
 	else {
 		switch (key->code) {
-			CameraController::get_instance()->process_keyboard(key);
-			if (key->control)
+
+		}
+		if (key->control)
+		{
+			switch (key->code)
 			{
-				switch (key->code)
-				{
-				case sf::Keyboard::Key::A: {
-					for (auto shape : shapes_) selection_controller->try_add_shape_to_selection(shape, true);
-				}
-				}
+			case sf::Keyboard::Key::A: {
+				for (auto shape : shapes_) selection_controller->try_add_shape_to_selection(shape, true);
+			}
 			}
 		}
 	}
 	switch (key->code) {
-		if (key->control)
-		{
-			switch (key->code) {
-			case sf::Keyboard::Key::V: { selection_controller->try_paste_shapes(mouse_position); break; }
-			}
+
+	}
+	if (key->control)
+	{
+		switch (key->code) {
+		case sf::Keyboard::Key::V: { selection_controller->try_paste_shapes(mouse_position); break; }
 		}
 	}
 }
@@ -293,9 +293,11 @@ void LogicController::delete_all_shapes()
 	for (auto& shape : shapes_) delete_shape(shape);
 }
 
-void LogicController::render_shapes(sf::RenderWindow& window)
+void LogicController::render_shapes(sf::RenderWindow& window, glm::vec3 view_position)
 {
+	//printf("%f,%f,%f\n", view_position.x, view_position.y, view_position.z);
+	auto ui = UIController::get_instance();
 	for (auto& shape : shapes_) 
-		shape->draw(window, CameraController::get_instance()->position);
+		shape->draw(window, view_position, ui->is_action_active(ButtonAction::Perspective));
 	SelectionController::get_instance()->draw_selection(window);
 }

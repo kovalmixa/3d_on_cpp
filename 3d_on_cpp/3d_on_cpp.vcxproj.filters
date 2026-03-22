@@ -33,7 +33,7 @@
     <Filter Include="Source Files\global_functions">
       <UniqueIdentifier>{9ef35165-b486-475e-9a56-9330e33d5569}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\logic_controller\camera_controller">
+    <Filter Include="Source Files\camera_controller">
       <UniqueIdentifier>{25d5e2f2-ee17-4358-850e-d0f0e20358a5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -63,7 +63,7 @@
       <Filter>Source Files\shape\shader_controller</Filter>
     </ClCompile>
     <ClCompile Include="camera_controller.cpp">
-      <Filter>Source Files\logic_controller\camera_controller</Filter>
+      <Filter>Source Files\camera_controller</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -116,7 +116,7 @@
       <Filter>Source Files\global_functions</Filter>
     </ClInclude>
     <ClInclude Include="camera_controller.h">
-      <Filter>Source Files\logic_controller\camera_controller</Filter>
+      <Filter>Source Files\camera_controller</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
