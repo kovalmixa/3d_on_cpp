@@ -46,15 +46,24 @@ void UIController::draw_checkbox(const std::string& label, ButtonAction action)
 
 void UIController::draw_once_act_button(std::string& label, void(*func)())
 {
-    if (ImGui::Button(label.c_str(), ImVec2(label.size() * 10, 20))) {
-        func(); show_activeness(true);
-    }
+    if (ImGui::Button(label.c_str(), ImVec2(label.size() * 10, 20))) func();
 }
 
 void UIController::draw_act_button(const std::string& label, ButtonAction action = ButtonAction::None)
 {
     if (buttons_.find(label) == buttons_.end() && action != ButtonAction::None)
         buttons_.insert(std::pair<const std::string, ButtonAction>(label, action));
+    bool is_active = is_action_active(action);
+    if (is_active) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ACTIVE_BTN_COLOR);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ACTIVE_BTN_COLOR);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
+    }
+
     if (ImGui::Button(label.c_str(), ImVec2(label.size() * 10, 20))) button_click(label, action);
-    show_activeness(is_action_active(action));
+
+    if (is_active) {
+        ImGui::PopStyleVar();
+        ImGui::PopStyleColor(2);
+    }
 }

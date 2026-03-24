@@ -30,9 +30,10 @@ public:
 	static LogicController* get_instance();
 
 	void load_shapes(std::string file_path);
-
+	
 	void execute_action(ButtonAction action, sf::Vector2f mouse_position);
 	void keyboard_action_process(const sf::Event event, sf::Vector2f mouse_position);
+	void process_camera_mov(float dt);
 	void begin_drag(sf::Vector2f mouse_position);
 	void end_drag();
 
@@ -41,5 +42,5 @@ public:
 	void add_shape(Shape* shape);
 	void delete_shape(Shape*& shape);
 	void delete_all_shapes();
-	void render_shapes(sf::RenderWindow& window, glm::vec3 view_position);
+	void render_shapes(sf::RenderWindow& window);
 };

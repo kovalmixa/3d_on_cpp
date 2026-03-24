@@ -12,6 +12,7 @@
 #include "ui_controller.h"
 #include "logic_controller.h"
 #include "selection_controller.h"
+#include "camera_controller.h"
 
 using json = nlohmann::json;
 
@@ -198,6 +199,7 @@ void LogicController::keyboard_action_process(sf::Event event, sf::Vector2f mous
 	if (!event.is<sf::Event::KeyPressed>()) return;
 	const auto* key = event.getIf<sf::Event::KeyPressed>();
 	auto selection_controller = SelectionController::get_instance();
+
 	if (selection_controller->is_selection_active) {
 		switch (key->code) {
 		case sf::Keyboard::Key::Delete:
@@ -216,12 +218,11 @@ void LogicController::keyboard_action_process(sf::Event event, sf::Vector2f mous
 	}
 	else {
 		switch (key->code) {
-
+		case sf::Keyboard::Key::M: { CameraController::get_instance()->switch_movement(); break; }
 		}
 		if (key->control)
 		{
-			switch (key->code)
-			{
+			switch (key->code) {
 			case sf::Keyboard::Key::A: {
 				for (auto shape : shapes_) selection_controller->try_add_shape_to_selection(shape, true);
 			}
@@ -237,6 +238,12 @@ void LogicController::keyboard_action_process(sf::Event event, sf::Vector2f mous
 		case sf::Keyboard::Key::V: { selection_controller->try_paste_shapes(mouse_position); break; }
 		}
 	}
+}
+
+void LogicController::process_camera_mov(float dt)
+{
+	if (!SelectionController::get_instance()->is_selection_active)
+		CameraController::get_instance()->key_movement(dt);
 }
 
 #pragma endregion
@@ -293,10 +300,11 @@ void LogicController::delete_all_shapes()
 	for (auto& shape : shapes_) delete_shape(shape);
 }
 
-void LogicController::render_shapes(sf::RenderWindow& window, glm::vec3 view_position)
+void LogicController::render_shapes(sf::RenderWindow& window)
 {
 	//printf("%f,%f,%f\n", view_position.x, view_position.y, view_position.z);
 	auto ui = UIController::get_instance();
+	glm::vec3 view_position = CameraController::get_instance()->position;
 	for (auto& shape : shapes_) 
 		shape->draw(window, view_position, ui->is_action_active(ButtonAction::Perspective));
 	SelectionController::get_instance()->draw_selection(window);

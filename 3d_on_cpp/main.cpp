@@ -18,19 +18,18 @@
 #include "logic_controller.h"
 #include "selection_controller.h"
 #include "ui_controller.h"
-#include "camera_controller.h"
 
 static std::atomic running(true);
 static std::mutex event_mutex;
 static std::vector<sf::Event> event_queue;
 static sf::Clock delta_clock;
+std::atomic<bool> is_paused{ false };
 
 void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& events, float dt)
 {
     auto logic_controller = LogicController::get_instance();
     auto ui_controller = UIController::get_instance();
     sf::Vector2f mouse_position;
-    CameraController::get_instance()->process_keyboard(dt);
 
     for (auto& event : events)
     {
@@ -81,6 +80,8 @@ void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& even
             window->setView(sf::View(visibleArea));
         }
     }
+
+    logic_controller->process_camera_mov(dt);
 
     // Mouse drag handling
     if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
@@ -153,7 +154,7 @@ void rendering_pipeline(sf::RenderWindow* window) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     window->clear(ui->background_color);
 
-    LogicController::get_instance()->render_shapes(*window, CameraController::get_instance()->position);
+    LogicController::get_instance()->render_shapes(*window);
     ImGui::SFML::Render(*window);
 
     window->display();
@@ -163,9 +164,11 @@ void window_render_thread(sf::RenderWindow* window)
 {
     window->setActive(true);
     glewInit();
+    ImGui::SFML::Init(*window);
 
     while (running)
     {
+        if (is_paused) continue;
         sf::Time elapsed = delta_clock.restart();
         float dt = elapsed.asSeconds();
         std::vector<sf::Event> current_frame_events;
@@ -194,7 +197,6 @@ int main()
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    ImGui::SFML::Init(window);
 
     std::thread render(window_render_thread, &window);
 
@@ -202,6 +204,9 @@ int main()
     {
         while (const std::optional event = window.pollEvent())
         {
+            if (event->is<sf::Event::FocusLost>()) is_paused = true;
+            else if (event->is<sf::Event::FocusGained>()) is_paused = false;
+
             std::lock_guard<std::mutex> lock(event_mutex);
             event_queue.push_back(*event);
         }

@@ -5,7 +5,7 @@
 class CameraController {
 private:
 	static CameraController* instance_;
-
+	bool is_moving = true;
 	const float SPEED = 3.f;
 
 	CameraController() = default;
@@ -15,5 +15,6 @@ public:
 
 	static CameraController* get_instance();
 
-	void process_keyboard(const float dt);
+	void switch_movement();
+	void key_movement(const float dt);
 };
