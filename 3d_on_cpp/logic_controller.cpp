@@ -130,6 +130,7 @@ void LogicController::paint_shape(sf::Vector2f position)
 	auto ui_controller = UIController::get_instance();
 	try
 	{
+		ui_controller->current_button_action = ButtonAction::None;
 		for (auto it = shapes_.rbegin(); it != shapes_.rend(); ++it) {
 			if ((*it)->contains(position)) {
 				(*it)->set_color(sf_glm_col(ui_controller->current_color));

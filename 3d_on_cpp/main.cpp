@@ -91,7 +91,6 @@ void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& even
         logic_controller->update_drag(ui_controller->current_button_action, worldPos);
     }
 
-    event_queue.clear();
 }
 
 void rendering_pipeline(sf::RenderWindow* window) {
@@ -151,8 +150,8 @@ void rendering_pipeline(sf::RenderWindow* window) {
         ImGuiFileDialog::Instance()->Close();
     }
 #pragma endregion
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     window->clear(ui->background_color);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     LogicController::get_instance()->render_shapes(*window);
     ImGui::SFML::Render(*window);
@@ -164,18 +163,21 @@ void window_render_thread(sf::RenderWindow* window)
 {
     window->setActive(true);
     glewInit();
+
     ImGui::SFML::Init(*window);
 
     while (running)
     {
         if (is_paused) continue;
-        sf::Time elapsed = delta_clock.restart();
-        float dt = elapsed.asSeconds();
+        float dt = delta_clock.restart().asSeconds();
+       
         std::vector<sf::Event> current_frame_events;
         {
             std::lock_guard<std::mutex> lock(event_mutex);
             current_frame_events.swap(event_queue);
+            event_queue.clear();
         }
+
         logic_pipeline(window, current_frame_events, dt);
         rendering_pipeline(window);
     }
@@ -189,14 +191,12 @@ int main()
     settings.majorVersion = 3;
     settings.minorVersion = 3;
     sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "SFML 3d");
-    window.setActive(false);
+    
     window.setFramerateLimit(60);
+    window.setActive(false);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
 
     std::thread render(window_render_thread, &window);
 
@@ -204,13 +204,14 @@ int main()
     {
         while (const std::optional event = window.pollEvent())
         {
+            if (event->is<sf::Event::Closed>()) running = false;
+            
             if (event->is<sf::Event::FocusLost>()) is_paused = true;
             else if (event->is<sf::Event::FocusGained>()) is_paused = false;
 
             std::lock_guard<std::mutex> lock(event_mutex);
             event_queue.push_back(*event);
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
     if (render.joinable()) render.join();
