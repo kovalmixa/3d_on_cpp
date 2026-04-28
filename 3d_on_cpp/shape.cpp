@@ -1,6 +1,8 @@
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "shape.h"
-#include <glm/gtc/matrix_inverse.hpp>
-#include <algorithm>
+#include "vector_functions.h"
 
 void Shape::apply_transform()
 {
@@ -18,6 +20,17 @@ void Shape::set_bounding_box()
         bounding_box_.min = glm::min(bounding_box_.min, v);
         bounding_box_.max = glm::max(bounding_box_.max, v);
     }
+}
+
+glm::mat4 Shape::get_model()
+{
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, transform_.position);
+    model = glm::rotate(model, glm::radians(transform_.rotation.x), glm::vec3(1, 0, 0));
+    model = glm::rotate(model, glm::radians(transform_.rotation.y), glm::vec3(0, 1, 0));
+    model = glm::rotate(model, glm::radians(transform_.rotation.z), glm::vec3(0, 0, 1));
+    model = glm::scale(model, transform_.scale);
+    return model;
 }
 
 void Shape::draw_outline(const glm::mat4& projection, const glm::mat4& view, 
@@ -157,35 +170,24 @@ void Shape::set_color(const glm::vec4& color)
 {
 }
 
-AABB Shape::get_box() { return bounding_box_; }
+AABB Shape::get_box(std::list<glm::vec3>& vertices)
+{
 
-void Shape::draw(sf::RenderWindow& window, glm::vec3 camera_pos, bool is_perspective)
+    return AABB();
+}
+
+void Shape::draw(sf::RenderWindow& window, ViewProjection& vp)
 {
     if (!shader_status) return;
     glEnable(GL_DEPTH_TEST);
 
     sf::Vector2u windowSize = window.getSize();
     glViewport(0, 0, windowSize.x, windowSize.y);
+    glm::mat4 model = get_model();
 
-    float aspect = static_cast<float>(windowSize.x) /
-        std::max(static_cast<float>(windowSize.y), 1.0f);
-    glm::mat4 projection;
-    if (is_perspective) projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
-    else {
-        float size = 5.0f;
-        projection = glm::ortho(-size * aspect, size * aspect, -size, size, 0.1f, 100.0f);
-    }
-    glm::mat4 view = glm::lookAt(camera_pos, camera_pos + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, transform_.position);
-    model = glm::rotate(model, glm::radians(transform_.rotation.x), glm::vec3(1, 0, 0));
-    model = glm::rotate(model, (float)global_clock.getElapsedTime().asSeconds(), glm::vec3(0, 1, 0));
-    model = glm::rotate(model, glm::radians(transform_.rotation.z), glm::vec3(0, 0, 1));
-    model = glm::scale(model, transform_.scale);
-
-    draw_outline(projection, view, model, is_perspective);
+    draw_outline(vp.projection, vp.view, model, vp.is_perspective);
     shader_controller_->use();
-    shader_controller_->set_uniform(projection, view, model);
+    shader_controller_->set_uniform(vp.projection, vp.view, model);
 
     glUniform4f(shader_color_, color_.r, color_.g, color_.b, color_.a);
     glBindVertexArray(VAO);
@@ -199,9 +201,40 @@ void Shape::draw(sf::RenderWindow& window, glm::vec3 camera_pos, bool is_perspec
     glBindVertexArray(0);
 }
 
-bool Shape::contains(const sf::Vector2f point)
+bool Shape::contains(const Ray& ray, bool is_box)
 {
-	return false;
+    glm::mat4 invModel = glm::inverse(get_model());
+
+    Ray localRay;
+    localRay.origin = glm::vec3(invModel * glm::vec4(ray.origin, 1.0f));
+    localRay.direction = glm::normalize(glm::vec3(invModel * glm::vec4(ray.direction, 0.0f)));
+
+    if (is_box) {
+        return false;
+    }
+
+    float closestT = std::numeric_limits<float>::max();
+    bool hit = false;
+
+    auto& vertices = geometry_.vertices;
+    auto& indices = geometry_.indices;
+
+    for (size_t i = 0; i < indices.size(); i += 3) {
+        float t;
+        glm::vec3 v0 = vertices[indices[i]];
+        glm::vec3 v1 = vertices[indices[i + 1]];
+        glm::vec3 v2 = vertices[indices[i + 2]];
+
+        auto intersect = ray_triangle_intersect(localRay.origin, localRay.direction, v0, v1, v2, t);
+
+        if (intersect && t > 0.0001f) {
+            if (t < closestT) {
+                closestT = t;
+                hit = true;
+            }
+        }
+    }
+    return hit;
 }
 
 Shape* Shape::clone()

@@ -5,7 +5,8 @@
 class CameraController {
 private:
 	static CameraController* instance_;
-	bool is_moving = true;
+
+	bool is_moving = false;
 	const float SPEED = 3.f;
 
 	CameraController() = default;

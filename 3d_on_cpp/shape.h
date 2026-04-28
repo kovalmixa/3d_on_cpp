@@ -9,15 +9,17 @@
 #include <nlohmann/json.hpp>
 
 #include "aabb.h"
+#include "ray.h"
 #include "transform.h"
 #include "geometry.h"
 #include "shader_controller.h"
+#include "view_projection.h"
 
 class Shape {
 private:
     GLuint VAO, VBO, EBO;
     sf::Clock global_clock;
-    GLuint shaderProgramID;
+    GLuint shader_program_Id;
     ShaderController* shader_controller_;
     bool shader_status = true;
     Geometry geometry_;
@@ -28,6 +30,7 @@ private:
 
     void apply_transform();
     void set_bounding_box();
+    glm::mat4 get_model();
 
     void draw_outline(const glm::mat4& projection, const glm::mat4& view, 
         const glm::mat4& model, bool is_perspective);
@@ -47,10 +50,10 @@ public:
     void set_outline(const bool show);
     glm::vec4 get_color();
     void set_color(const glm::vec4& color);
-    AABB get_box();
+    static AABB get_box(std::list<glm::vec3>& vertices);
 
-    void draw(sf::RenderWindow& window, glm::vec3 camera_pos, bool is_perspective);
-    bool contains(const sf::Vector2f point);
+    void draw(sf::RenderWindow& window, ViewProjection& vp);
+    bool contains(const Ray& ray, bool is_box = false);
     Shape* clone();
 };
 

@@ -159,6 +159,7 @@ user32.lib
     <ClInclude Include="file_functions.h" />
     <ClInclude Include="geometry.h" />
     <ClInclude Include="random_functions.h" />
+    <ClInclude Include="ray.h" />
     <ClInclude Include="shader_controller.h" />
     <ClInclude Include="shape.h" />
     <ClInclude Include="logic_controller.h" />
@@ -166,6 +167,7 @@ user32.lib
     <ClInclude Include="transform.h" />
     <ClInclude Include="ui_controller.h" />
     <ClInclude Include="vector_functions.h" />
+    <ClInclude Include="view_projection.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

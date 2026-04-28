@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <nlohmann/json.hpp>
 #include <string>
+
 #include "math_functions.h"
 #include "color_functions.h"
 #include "file_functions.h"
@@ -13,6 +14,7 @@
 #include "logic_controller.h"
 #include "selection_controller.h"
 #include "camera_controller.h"
+#include "view_projection.h"
 
 using json = nlohmann::json;
 
@@ -21,8 +23,8 @@ LogicController* LogicController::instance_ = nullptr;
 LogicController::LogicController()
 {
 	handlers_ = {
-		{ButtonAction::Paint,	 [this](sf::Vector2f position) { paint_shape(position); } },
-		{ButtonAction::Pipette,  [this](sf::Vector2f position) { copy_color(position); }},
+		{ButtonAction::Paint,	 [this](const Ray& ray) { paint_shape(ray); } },
+		{ButtonAction::Pipette,  [this](const Ray& ray) { copy_color(ray); }},
 	};
 }
 
@@ -105,13 +107,13 @@ void LogicController::try_parse_obj_file(std::string file_path)
 	}
 }
 
-void LogicController::copy_color(sf::Vector2f position)
+void LogicController::copy_color(const Ray& ray)
 {
 	auto ui_controller = UIController::get_instance();
 	try
 	{
 		for (auto it = shapes_.rbegin(); it != shapes_.rend(); ++it) {
-			if ((*it)->contains(position)) {
+			if ((*it)->contains(ray)) {
 				(*it)->get_color();
 				ui_controller->current_color = glm_sf_col((*it)->get_color());
 				break;
@@ -125,14 +127,15 @@ void LogicController::copy_color(sf::Vector2f position)
 	}
 }
 
-void LogicController::paint_shape(sf::Vector2f position)
+void LogicController::paint_shape(const Ray& ray)
 {
 	auto ui_controller = UIController::get_instance();
 	try
 	{
 		ui_controller->current_button_action = ButtonAction::None;
+
 		for (auto it = shapes_.rbegin(); it != shapes_.rend(); ++it) {
-			if ((*it)->contains(position)) {
+			if ((*it)->contains(ray)) {
 				(*it)->set_color(sf_glm_col(ui_controller->current_color));
 				break;
 			}
@@ -145,14 +148,21 @@ void LogicController::paint_shape(sf::Vector2f position)
 	}
 }
 
-void LogicController::try_find_shape_to_select(sf::Vector2f position)
+void LogicController::try_find_shape_to_select(const Ray& ray)
 {
 	bool ctrl_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RControl) ||
 		sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl);
 	auto selection = SelectionController::get_instance();
 	for (auto it = shapes_.rbegin(); it != shapes_.rend(); ++it)
-		if (selection->try_select_shape(*it, position, ctrl_pressed)) return;
+		if (selection->try_select_shape(ray, *it, ctrl_pressed)) return;
 	selection->clear_selection();
+}
+
+ViewProjection* LogicController::get_vp(sf::RenderWindow& window)
+{
+	auto ui = UIController::get_instance();
+	glm::vec3 view_position = CameraController::get_instance()->position;
+	return new ViewProjection(window, view_position, ui->is_action_active(ButtonAction::Perspective));
 }
 
 LogicController* LogicController::get_instance() { return instance_ ? instance_ : instance_ = new LogicController(); }
@@ -184,15 +194,21 @@ void LogicController::load_shapes(std::string file_path)
 
 #pragma region execution methods
 
-void LogicController::execute_action(ButtonAction action, sf::Vector2f mouse_position)
+void LogicController::execute_action(sf::RenderWindow& window, ButtonAction action, sf::Vector2f mouse_position)
 {
 	if (is_dragging_) return;
+
+	ViewProjection* vp = get_vp(window);
+	Ray ray(window, mouse_position, *vp);
+
 	auto it = handlers_.find(action);
 	if (it != handlers_.end()) {
 		SelectionController::get_instance()->clear_selection();
-		it->second(mouse_position);
+		it->second(ray);
 	}
-	else try_find_shape_to_select(mouse_position);
+	else try_find_shape_to_select(ray);
+
+	delete vp;
 }
 
 void LogicController::keyboard_action_process(sf::Event event, sf::Vector2f mouse_position)
@@ -205,8 +221,8 @@ void LogicController::keyboard_action_process(sf::Event event, sf::Vector2f mous
 		switch (key->code) {
 		case sf::Keyboard::Key::Delete:
 		case sf::Keyboard::Key::Backspace: { selection_controller->delete_selected_shapes(); break; }
-		case sf::Keyboard::Key::W: { selection_controller->transform_mode = TransformMode::Move; break; }
-		case sf::Keyboard::Key::R: { selection_controller->transform_mode = TransformMode::Rotate; break; }
+		/*case sf::Keyboard::Key::W: { selection_controller->transform_mode = TransformMode::Move; break; }
+		case sf::Keyboard::Key::R: { selection_controller->transform_mode = TransformMode::Rotate; break; }*/
 		}
 		if (key->control)
 		{
@@ -218,8 +234,11 @@ void LogicController::keyboard_action_process(sf::Event event, sf::Vector2f mous
 		}
 	}
 	else {
+		auto selection_controller = SelectionController::get_instance();
 		switch (key->code) {
-		case sf::Keyboard::Key::M: { CameraController::get_instance()->switch_movement(); break; }
+		//case sf::Keyboard::Key::M: { CameraController::get_instance()->switch_movement(); break; }
+		case sf::Keyboard::Key::M: { selection_controller->switch_transform_mode(TransformMode::Move); break; }
+		case sf::Keyboard::Key::S: { selection_controller->switch_transform_mode(TransformMode::Scale); break; }
 		}
 		if (key->control)
 		{
@@ -241,10 +260,27 @@ void LogicController::keyboard_action_process(sf::Event event, sf::Vector2f mous
 	}
 }
 
-void LogicController::process_camera_mov(float dt)
+void LogicController::process_keyboard_delta_mov(float dt)
 {
-	if (!SelectionController::get_instance()->is_selection_active)
+	auto selection_controller = SelectionController::get_instance();
+	if (!selection_controller->is_selection_active)
+		if (selection_controller->get_transform_mode() != TransformMode::None)
+			set_global_transform_bias(*selection_controller->process_keyboard_transform(dt));
 		CameraController::get_instance()->key_movement(dt);
+}
+
+void LogicController::set_global_transform_bias(const Transform& transform_data)
+{
+	for (auto& shape : shapes_) shape->set_transform(transform_data + shape->get_transform());
+}
+
+void LogicController::set_trajectory(sf::RenderWindow& window, sf::Vector2f mouse_position) {
+	ViewProjection* vp = get_vp(window);
+	Ray ray(window, mouse_position, *vp);
+	this->target_pos = ray.origin;
+	this->current_ray_dir = ray.direction;
+	this->has_target = true;
+	delete vp;
 }
 
 #pragma endregion
@@ -303,10 +339,33 @@ void LogicController::delete_all_shapes()
 
 void LogicController::render_shapes(sf::RenderWindow& window)
 {
-	//printf("%f,%f,%f\n", view_position.x, view_position.y, view_position.z);
-	auto ui = UIController::get_instance();
-	glm::vec3 view_position = CameraController::get_instance()->position;
-	for (auto& shape : shapes_) 
-		shape->draw(window, view_position, ui->is_action_active(ButtonAction::Perspective));
-	SelectionController::get_instance()->draw_selection(window);
+	auto vp = get_vp(window);
+	if (has_target) {
+		bool all_reached = true;
+
+		for (auto& shape : shapes_) {
+			Transform t = shape->get_transform();
+			glm::vec3 current_pos = t.position;
+
+			float distance = 0;
+			if (std::abs(current_ray_dir.z) > 0.0001f)
+				distance = (current_pos.z - target_pos.z) / current_ray_dir.z;
+			glm::vec3 real_target = target_pos + current_ray_dir * distance;
+			glm::vec3 diff = real_target - current_pos;
+			float dist_to_target = glm::length(diff);
+
+			if (dist_to_target > SHAPES_MOVE_SPEED) {
+				glm::vec3 norm_dir = glm::normalize(diff);
+				t.position += norm_dir * (float)SHAPES_MOVE_SPEED;
+				shape->set_transform(t);
+				all_reached = false;
+			}
+		}
+
+		if (all_reached) has_target = false;
+	}
+
+	for (auto& shape : shapes_) shape->draw(window, *vp);
+	//SelectionController::get_instance()->draw_selection(window, *vp);
+	delete vp;
 }

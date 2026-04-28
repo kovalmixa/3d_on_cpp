@@ -12,7 +12,6 @@
 #include <mutex>
 #include <optional>
 #include <vector>
-
 #include <GL/glew.h>
 
 #include "logic_controller.h"
@@ -28,6 +27,7 @@ std::atomic<bool> is_paused{ false };
 void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& events, float dt)
 {
     auto logic_controller = LogicController::get_instance();
+    auto selection_cotnroller = SelectionController::get_instance();
     auto ui_controller = UIController::get_instance();
     sf::Vector2f mouse_position;
 
@@ -35,7 +35,6 @@ void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& even
     {
         ImGui::SFML::ProcessEvent(*window, event);
         mouse_position = window->mapPixelToCoords(sf::Mouse::getPosition(*window));
-
         // Mouse pressed
         if (const auto* mouseEvent = event.getIf<sf::Event::MouseButtonPressed>())
         {
@@ -46,18 +45,21 @@ void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& even
                 if (mouseEvent->button == sf::Mouse::Button::Left)
                 {
                     if (ui_controller->current_button_action == ButtonAction::None &&
-                        SelectionController::get_instance()->is_point_on_selection(mouse_position))
+                        selection_cotnroller->is_point_on_selection(mouse_position))
                     {
                         logic_controller->begin_drag(mouse_position);
                     }
-                    else logic_controller->execute_action(ui_controller->current_button_action, mouse_position);
+                    else logic_controller->execute_action(*window, ui_controller->current_button_action, mouse_position);
+                }
+                if (mouseEvent->button == sf::Mouse::Button::Right) {
+                    logic_controller->set_trajectory(*window, mouse_position);
                 }
                 else if (const auto* mouseEvent = event.getIf<sf::Event::MouseButtonReleased>())
                     if (mouseEvent->button == sf::Mouse::Button::Left) logic_controller->end_drag();
                     else if (mouseEvent->button == sf::Mouse::Button::Right &&
-                        SelectionController::get_instance()->is_point_on_selection(mouse_position))
+                        selection_cotnroller->is_point_on_selection(mouse_position))
                     {
-
+                        
                     }
             }
             if (mouseEvent->button == sf::Mouse::Button::Right) logic_controller->remove_actions();
@@ -80,8 +82,7 @@ void logic_pipeline(sf::RenderWindow* window, const std::vector<sf::Event>& even
             window->setView(sf::View(visibleArea));
         }
     }
-
-    logic_controller->process_camera_mov(dt);
+   logic_controller->process_keyboard_delta_mov(dt);
 
     // Mouse drag handling
     if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))

@@ -21,20 +21,20 @@
     <Filter Include="Source Files\ImGuiFileDialog">
       <UniqueIdentifier>{b8e3c2cf-8a32-4967-9295-fad75babbd22}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\shape">
-      <UniqueIdentifier>{970ea885-0fb4-497b-85e5-559aca983c3d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\shape\bounding_box">
-      <UniqueIdentifier>{70f96f12-c033-499b-a21d-6f98ffec21a7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\shape\shader_controller">
-      <UniqueIdentifier>{b2fe8594-7202-4208-b397-71878bbc28ba}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\global_functions">
       <UniqueIdentifier>{9ef35165-b486-475e-9a56-9330e33d5569}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\camera_controller">
       <UniqueIdentifier>{25d5e2f2-ee17-4358-850e-d0f0e20358a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shape_3d">
+      <UniqueIdentifier>{970ea885-0fb4-497b-85e5-559aca983c3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shape_3d\bounding_box">
+      <UniqueIdentifier>{70f96f12-c033-499b-a21d-6f98ffec21a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shape_3d\shader_controller">
+      <UniqueIdentifier>{b2fe8594-7202-4208-b397-71878bbc28ba}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -48,19 +48,19 @@
       <Filter>Source Files\ui_controller</Filter>
     </ClCompile>
     <ClCompile Include="shape.cpp">
-      <Filter>Source Files\shape</Filter>
+      <Filter>Source Files\shape_3d</Filter>
     </ClCompile>
     <ClCompile Include="selection_controller.cpp">
       <Filter>Source Files\logic_controller\selection_controller</Filter>
     </ClCompile>
     <ClCompile Include="aabb.cpp">
-      <Filter>Source Files\shape\bounding_box</Filter>
+      <Filter>Source Files\shape_3d\bounding_box</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\..\ProgrammingTools\ImGuiFileDialog\ImGuiFileDialog.cpp">
       <Filter>Source Files\ImGuiFileDialog</Filter>
     </ClCompile>
     <ClCompile Include="shader_controller.cpp">
-      <Filter>Source Files\shape\shader_controller</Filter>
+      <Filter>Source Files\shape_3d\shader_controller</Filter>
     </ClCompile>
     <ClCompile Include="camera_controller.cpp">
       <Filter>Source Files\camera_controller</Filter>
@@ -74,19 +74,19 @@
       <Filter>Source Files\ui_controller</Filter>
     </ClInclude>
     <ClInclude Include="shape.h">
-      <Filter>Source Files\shape</Filter>
+      <Filter>Source Files\shape_3d</Filter>
     </ClInclude>
     <ClInclude Include="selection_controller.h">
       <Filter>Source Files\logic_controller\selection_controller</Filter>
     </ClInclude>
     <ClInclude Include="aabb.h">
-      <Filter>Source Files\shape\bounding_box</Filter>
+      <Filter>Source Files\shape_3d\bounding_box</Filter>
     </ClInclude>
     <ClInclude Include="geometry.h">
-      <Filter>Source Files\shape</Filter>
+      <Filter>Source Files\shape_3d</Filter>
     </ClInclude>
     <ClInclude Include="transform.h">
-      <Filter>Source Files\shape</Filter>
+      <Filter>Source Files\shape_3d</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\..\ProgrammingTools\ImGuiFileDialog\dirent\dirent.h">
       <Filter>Source Files\ImGuiFileDialog</Filter>
@@ -98,7 +98,7 @@
       <Filter>Source Files\ImGuiFileDialog</Filter>
     </ClInclude>
     <ClInclude Include="shader_controller.h">
-      <Filter>Source Files\shape\shader_controller</Filter>
+      <Filter>Source Files\shape_3d\shader_controller</Filter>
     </ClInclude>
     <ClInclude Include="math_functions.h">
       <Filter>Source Files\global_functions</Filter>
@@ -117,6 +117,12 @@
     </ClInclude>
     <ClInclude Include="camera_controller.h">
       <Filter>Source Files\camera_controller</Filter>
+    </ClInclude>
+    <ClInclude Include="ray.h">
+      <Filter>Source Files\shape_3d</Filter>
+    </ClInclude>
+    <ClInclude Include="view_projection.h">
+      <Filter>Source Files\shape_3d</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -95,18 +95,18 @@ void SelectionController::update_transform_to_selected_shapes()
 	update_transform_points();
 }
 
-AABB SelectionController::get_all_shapes_bounds_transform(std::list<Shape*> figures)
-{
-	if (figures.empty()) return AABB::Default;
-	AABB bounding_box;
-	bounding_box.min = figures.front()->get_box().min;
-	bounding_box.max = figures.front()->get_box().max;
-	for (const auto& f : figures)
-	{
-		bounding_box.min = glm::min(bounding_box.min, f->get_box().min);
-		bounding_box.max = glm::max(bounding_box.max, f->get_box().max);
-	}
-}
+//AABB SelectionController::get_all_shapes_bounds_transform(std::list<Shape*> figures)
+//{
+//	if (figures.empty()) return AABB::Default;
+//	AABB bounding_box;
+//	bounding_box.min = figures.front()->get_box().min;
+//	bounding_box.max = figures.front()->get_box().max;
+//	for (const auto& f : figures)
+//	{
+//		bounding_box.min = glm::min(bounding_box.min, f->get_box().min);
+//		bounding_box.max = glm::max(bounding_box.max, f->get_box().max);
+//	}
+//}
 
 SelectionController* SelectionController::get_instance() {
 	return (instance_ == nullptr) ? instance_ = new SelectionController() : instance_;
@@ -121,10 +121,12 @@ bool SelectionController::is_point_on_selection(sf::Vector2f point)
 	return false;
 }
 
-bool SelectionController::try_select_shape(Shape* shape, sf::Vector2f point, bool is_union)
+bool SelectionController::try_select_shape(const Ray& ray, Shape* shape, bool is_union)
 {
-	if (!shape->contains(point)) return false;
-	try_add_shape_to_selection(shape, is_union);
+	bool contains = shape->contains(ray, false);
+	printf("contains = %d\n", contains);
+	if (!shape->contains(ray, false)) return false;
+	//try_add_shape_to_selection(shape, is_union);
 	return true;
 }
 
@@ -164,6 +166,43 @@ void SelectionController::clear_selection()
 	is_selection_active = false;
 }
 
+void SelectionController::switch_transform_mode(TransformMode mode)
+{
+	if (transform_mode == mode) transform_mode = TransformMode::None;
+	if (transform_mode != TransformMode::None) return;
+	transform_mode = mode;
+}
+
+TransformMode SelectionController::get_transform_mode() { return transform_mode; }
+
+Transform* SelectionController::process_keyboard_transform(float dt)
+{
+	auto delta_transform = new Transform();
+	float is_reverse = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl) ? -1.f : 1.f;
+	if (transform_mode == TransformMode::Move) {
+		glm::vec3& position = delta_transform->position;
+		glm::vec3& rotation = delta_transform->rotation;
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) position.z -= MOVEMENT_SPEED * dt;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) position.z += MOVEMENT_SPEED * dt;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) position.x -= MOVEMENT_SPEED * dt;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) position.x += MOVEMENT_SPEED * dt;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift)) position.y -= MOVEMENT_SPEED * dt;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) position.y += MOVEMENT_SPEED * dt;
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X)) rotation.x += RORATION_SPEED * dt * is_reverse;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Y)) rotation.y += RORATION_SPEED * dt * is_reverse;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) rotation.z += RORATION_SPEED * dt * is_reverse;
+	}
+	else {
+		glm::vec3& scale = delta_transform->scale;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X)) scale.x *= scale.x + SCALING_SPEED * dt * is_reverse;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Y)) scale.y *= scale.y + SCALING_SPEED * dt * is_reverse;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) scale.z *= scale.z + SCALING_SPEED * dt * is_reverse;
+	}
+	return delta_transform;
+}
+
 void SelectionController::try_begin_drag_transform_mode(sf::Vector2f mouse_position)
 {
 	if (!is_selection_active) return;
@@ -179,7 +218,7 @@ void SelectionController::update_transform(sf::Vector2f mouse_position)
 	last_transform_data = selection_transform_data;
 	switch (transform_mode)
 	{
-	case TransformMode::Rotate: drag_rotation(mouse_position); break;
+	//case TransformMode::Rotate: drag_rotation(mouse_position); break;
 	case TransformMode::Move: drag_movement(mouse_position); break;
 	}
 }
@@ -196,7 +235,7 @@ void SelectionController::try_copy_shapes()
 
 void SelectionController::try_paste_shapes(sf::Vector2f mouse_position)
 {
-	if (copy_buffer.empty()) return;
+	/*if (copy_buffer.empty()) return;
 	clear_selection();
 	auto sel_box = get_all_shapes_bounds_transform(copy_buffer);
 	auto copy_center = get_vec_mid(sel_box.min, sel_box.max);
@@ -204,17 +243,17 @@ void SelectionController::try_paste_shapes(sf::Vector2f mouse_position)
 	for (auto& proto : copy_buffer) {
 		if (!proto) continue;
 		auto new_shape = proto->clone();
-		auto shape_transform = new_shape->get_transform();
+		auto shape_transform = new_shape->get_transform();*/
 		//auto offset = shape_transform.position - copy_center;
 		//new_shape->set_transform(mouse_position + offset, shape_transform.size, shape_transform.rotation);
 		//LogicController::get_instance()->add_shape(new_shape);
 		//pasted.push_back(new_shape);
-	}
+	//}
 
-	if (!pasted.empty()) {
-		clear_selection();
-		for (auto* s : pasted) try_add_shape_to_selection(s, true);
-	}
+	//if (!pasted.empty()) {
+	//	clear_selection();
+	//	for (auto* s : pasted) try_add_shape_to_selection(s, true);
+	//}
 }
 
 void SelectionController::draw_selection(sf::RenderWindow& window)

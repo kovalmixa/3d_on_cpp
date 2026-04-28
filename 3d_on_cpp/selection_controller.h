@@ -2,11 +2,13 @@
 #include <list>
 #include <glm/glm.hpp>
 
+#include "ray.h"
 #include "shape.h"
 
 enum class TransformMode {
+    None,
     Move,
-    Rotate
+    Scale
 };
 
 class SelectionController {
@@ -17,9 +19,13 @@ private:
     sf::RectangleShape selection_rect_;
     glm::mat4 selection_transform_data;
     glm::mat4 last_transform_data;
+    TransformMode transform_mode = TransformMode::None;
 
     const float TRANSFORM_POINTS_SIZE = 5.f;
     const float TRANSFORM_POINTS_DRAG_RADIUS_OFFSET = 10.f;
+    const float MOVEMENT_SPEED = 3.f;
+    const float RORATION_SPEED = 60.f;
+    const float SCALING_SPEED = 0.25;
     bool is_transforming_ = false;
 
     SelectionController();
@@ -32,21 +38,25 @@ private:
     void drag_movement(sf::Vector2f mouse_position);
 
     void update_transform_to_selected_shapes();
-    AABB get_all_shapes_bounds_transform(std::list<Shape*> shapes);
+
+    //AABB get_all_shapes_bounds_transform(std::list<Shape*> shapes);
 public:
     bool is_selection_active = false;
 
-    TransformMode transform_mode = TransformMode::Move;
     static SelectionController* get_instance();
 
     std::list<Shape*> get_selected_shapes();
     bool is_point_on_selection(sf::Vector2f mouse_position);
 
-    bool try_select_shape(Shape* shape, sf::Vector2f mouse_position, bool is_union);
+    bool try_select_shape(const Ray& ray, Shape* shape, bool is_union);
     void try_add_shape_to_selection(Shape* shape, bool is_union);
     void remove_shape_from_selection(Shape* shape);
     void delete_selected_shapes();
     void clear_selection();
+
+    void switch_transform_mode(TransformMode mode);
+    TransformMode get_transform_mode();
+    Transform* process_keyboard_transform(float dt);
 
     void try_begin_drag_transform_mode(sf::Vector2f mouse_position);
     void end_drag_transform_mode();
